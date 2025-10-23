@@ -6,5 +6,21 @@
     "endpoint": "http://localhost:8100/agents/financial-advisor/test",
     "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
     "domain": "finance"
+  },
+  "financial-advisor-2": {
+    "agentId": "financial-advisor-2",
+    "name": "FinancialAdvisor",
+    "manifestUrl": "http://localhost:8100/agents/financial-advisor-2/manifest.json",
+    "endpoint": "http://localhost:8100/agents/financial-advisor-2/test",
+    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
+    "domain": "finance"
+  },
+  "financial-advisor-3": {
+    "agentId": "financial-advisor-3",
+    "name": "FinancialAdvisor",
+    "manifestUrl": "http://localhost:8100/agents/financial-advisor-3/manifest.json",
+    "endpoint": "http://localhost:8100/agents/financial-advisor-3/test",
+    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
+    "domain": "finance"
   }
 }

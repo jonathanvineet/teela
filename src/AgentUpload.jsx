@@ -15,6 +15,10 @@ export default function AgentUpload() {
   const [uploadedManifest, setUploadedManifest] = useState(null)
   const [lastManifestUrl, setLastManifestUrl] = useState(null)
   const [debug, setDebug] = useState({})
+  const [evaluating, setEvaluating] = useState(false)
+  const [evaluationResult, setEvaluationResult] = useState(null)
+  const [rentalContractAddress, setRentalContractAddress] = useState('')
+  const [rentalStatus, setRentalStatus] = useState(null)
 
   const upload = async () => {
     console.debug('[AgentUpload] starting upload', { agentId, fileManifest, fileCode })
@@ -46,7 +50,7 @@ export default function AgentUpload() {
           manifestObj = JSON.parse(manifestText)
         }
         setUploadedManifest(manifestObj)
-      } catch (err) {
+      } catch {
         // ignore; registration will validate again
         setUploadedManifest(null)
       }
@@ -150,9 +154,65 @@ export default function AgentUpload() {
         return
       }
       setStatus('Registration successful: ' + JSON.stringify(regJson))
-    } catch (err) {
-      console.debug('[AgentUpload] registration error', err)
-      setStatus('Registration failed: ' + String(err))
+      } catch (_) {
+        console.debug('[AgentUpload] registration error', _)
+        setStatus('Registration failed: ' + String(_))
+    }
+  }
+
+  async function startRentWallet() {
+    console.debug('[AgentUpload] startRentWallet', { rentalStatus, rentalContractAddress, agentId, address })
+    if (!isConnected || !address) {
+      setStatus('Connect your wallet first')
+      return
+    }
+    if (!rentalStatus || !rentalStatus.rentalAmountWei) {
+      setStatus('Fetch rental status first')
+      return
+    }
+    if (!rentalContractAddress) {
+      setStatus('No rental contract address provided')
+      return
+    }
+
+    try {
+      // ethers v6 BrowserProvider from window.ethereum
+      if (!window.ethereum) {
+        setStatus('No injected wallet found (window.ethereum)')
+        return
+      }
+      const provider = new ethers.BrowserProvider(window.ethereum)
+      const signer = await provider.getSigner()
+
+      // minimal ABI for rent()
+      const abi = ["function rent() payable"]
+      const contract = new ethers.Contract(rentalContractAddress, abi, signer)
+
+      const amountWei = rentalStatus.rentalAmountWei
+      setStatus('Sending transaction to rent — please confirm in your wallet...')
+      const tx = await contract.rent({ value: BigInt(amountWei) })
+      setDebug((d) => ({ ...d, rentTx: { hash: tx.hash, tx } }))
+      setStatus('Transaction submitted: ' + tx.hash + ' — waiting for confirmation...')
+
+      const receipt = await tx.wait()
+      setDebug((d) => ({ ...d, rentReceipt: receipt }))
+      setStatus('Transaction confirmed: ' + tx.hash)
+
+      // notify backend to verify and update server-side rentals
+      try {
+        const res = await fetch('/api/agent-verify-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agentId, user: address, txHash: tx.hash }) })
+        const json = await res.json()
+        setDebug((d) => ({ ...d, verifyResponse: json }))
+        if (!res.ok) throw new Error(JSON.stringify(json))
+        setStatus('Payment verified by server: ' + JSON.stringify(json))
+      } catch (e) {
+        setStatus('Payment verification failed: ' + String(e))
+        setDebug((d) => ({ ...d, verifyError: String(e) }))
+      }
+    } catch (e) {
+      console.debug('[AgentUpload] startRentWallet error', e)
+      setStatus('Rent transaction failed: ' + String(e))
+      setDebug((d) => ({ ...d, rentError: String(e) }))
     }
   }
 
@@ -180,12 +240,102 @@ export default function AgentUpload() {
         <div style={{ display: 'flex', gap: 8 }}>
           <button onClick={upload}>Upload & Publish</button>
           <button onClick={registerWithWallet} disabled={!lastManifestUrl}>Register with Wallet</button>
+            <button onClick={async () => {
+              if (!uploadedManifest && !lastManifestUrl) return setStatus('No manifest available for evaluation')
+              setEvaluating(true)
+              setStatus('Running evaluation...')
+              // build test prompts from manifest.scoringInputs or a default set
+              const scoring = (uploadedManifest && uploadedManifest.scoringInputs) || (uploadedManifest && uploadedManifest.scoringInputs) || {}
+              let prompts = []
+              if (scoring && scoring.metrics) {
+                // example mapping: create simple prompts based on domain
+                prompts = [
+                  { prompt: 'How can I reduce monthly expenses?', expectedKeywords: ['expense','budget','save'] },
+                  { prompt: 'What should I do with an unexpected cash windfall?', expectedKeywords: ['save','invest','pay off'] }
+                ]
+              } else {
+                prompts = [
+                  { prompt: 'How can I reduce monthly expenses?', expectedKeywords: ['expense','budget'] },
+                  { prompt: 'What should I do with unexpected income?', expectedKeywords: ['save','invest','pay off'] }
+                ]
+              }
+              try {
+                const res = await fetch('/api/agent-evaluate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agentId, testPrompts: prompts }) })
+                const data = await res.json()
+                setEvaluationResult(data)
+                setDebug((d) => ({ ...d, lastEvaluation: data }))
+                setStatus('Evaluation complete: score=' + (data?.evaluation?.score ?? 'n/a'))
+              } catch (e) {
+                setStatus('Evaluation failed: ' + String(e))
+                setDebug((d) => ({ ...d, evalError: String(e) }))
+              } finally {
+                setEvaluating(false)
+              }
+            }} disabled={evaluating || !lastManifestUrl}>{evaluating ? 'Running...' : 'Run Evaluation'}</button>
+
+            <button onClick={async () => {
+              if (!uploadedManifest && !lastManifestUrl) return setStatus('No manifest available for security audit')
+              setEvaluating(true)
+              setStatus('Running security audit...')
+              // minimal testPrompts required by backend; content ignored by security audit
+              const prompts = [{ prompt: 'security audit placeholder' }]
+              try {
+                const res = await fetch('/api/agent-evaluate', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agentId, securityAudit: true, testPrompts: prompts, debug: true }) })
+                const data = await res.json()
+                setEvaluationResult(data)
+                setDebug((d) => ({ ...d, lastSecurityAudit: data }))
+                setStatus('Security audit complete: score=' + (data?.evaluation?.score ?? 'n/a'))
+              } catch (e) {
+                setStatus('Security audit failed: ' + String(e))
+                setDebug((d) => ({ ...d, auditError: String(e) }))
+              } finally {
+                setEvaluating(false)
+              }
+            }} disabled={evaluating || !lastManifestUrl}>{evaluating ? 'Running...' : 'Run Security Audit'}</button>
+        </div>
+
+        <div style={{ marginTop: 8, display: 'grid', gap: 8 }}>
+          <h3>On-chain Rental</h3>
+          <label>
+            Deployed Rental Contract Address:
+            <input value={rentalContractAddress} onChange={(e) => setRentalContractAddress(e.target.value)} placeholder='0x...' />
+          </label>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <button onClick={async () => {
+              if (!rentalContractAddress) return setStatus('Enter contract address')
+              try {
+                const res = await fetch('/api/agent-set-rental-contract', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agentId, contractAddress: rentalContractAddress }) })
+                const data = await res.json()
+                setDebug((d) => ({ ...d, setRentalContract: data }))
+                if (!res.ok) throw new Error(JSON.stringify(data))
+                setStatus('Registered rental contract: ' + data.contractAddress)
+              } catch (e) {
+                setStatus('Failed to register contract: ' + String(e))
+              }
+            }}>Register Contract</button>
+
+            <button onClick={async () => {
+              try {
+                const q = new URLSearchParams({ agent: agentId })
+                const res = await fetch('/api/agent-rental-status?' + q.toString())
+                const data = await res.json()
+                setRentalStatus(data)
+                setDebug((d) => ({ ...d, rentalStatus: data }))
+                if (!res.ok) throw new Error(JSON.stringify(data))
+                setStatus('Rental status fetched')
+              } catch (e) {
+                setStatus('Failed to fetch rental status: ' + String(e))
+              }
+            }}>Fetch Rental Status</button>
+
+            <button onClick={startRentWallet}>Start Rent (wallet)</button>
+          </div>
         </div>
 
         {status && <pre style={{ whiteSpace: 'pre-wrap' }}>{status}</pre>}
         <div style={{ marginTop: 12 }}>
           <strong>Debug:</strong>
-          <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{JSON.stringify(debug, null, 2)}</pre>
+          <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{JSON.stringify({ ...debug, evaluationResult }, null, 2)}</pre>
         </div>
       </div>
     </div>

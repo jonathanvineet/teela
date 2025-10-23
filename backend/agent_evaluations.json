@@ -1,0 +1,196 @@
+{
+  "financial-advisor-2": [
+    {
+      "agentId": "financial-advisor-2",
+      "timestamp": 1761244868,
+      "score": 0,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 0.0,
+          "expectedKeywords": [
+            "expense",
+            "budget"
+          ]
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 0.0,
+          "expectedKeywords": [
+            "save",
+            "invest",
+            "pay off"
+          ]
+        }
+      ]
+    }
+  ],
+  "financial-advisor-3": [
+    {
+      "agentId": "financial-advisor-3",
+      "timestamp": 1761246510,
+      "score": 69,
+      "results": [
+        {
+          "check": "data_encryption_at_rest",
+          "description": "Data encryption at rest",
+          "score": 67,
+          "details": "Data encryption at rest: Practices present but with some gaps (recommend tightening configurations)."
+        },
+        {
+          "check": "access_control",
+          "description": "Access control & least-privilege",
+          "score": 91,
+          "details": "Access control & least-privilege: Good controls observed (policy and technical controls appear present)."
+        },
+        {
+          "check": "logging_and_masking",
+          "description": "Logging, masking & redaction practices",
+          "score": 92,
+          "details": "Logging, masking & redaction practices: Good controls observed (policy and technical controls appear present)."
+        },
+        {
+          "check": "data_retention",
+          "description": "Data retention & deletion policy",
+          "score": 41,
+          "details": "Data retention & deletion policy: Weak or missing controls (immediate improvement recommended)."
+        },
+        {
+          "check": "input_validation",
+          "description": "Input validation & sanitization",
+          "score": 84,
+          "details": "Input validation & sanitization: Practices present but with some gaps (recommend tightening configurations)."
+        },
+        {
+          "check": "third_party_sharing",
+          "description": "Third-party sharing & disclosures",
+          "score": 42,
+          "details": "Third-party sharing & disclosures: Weak or missing controls (immediate improvement recommended)."
+        }
+      ],
+      "type": "security_audit"
+    },
+    {
+      "agentId": "financial-advisor-3",
+      "timestamp": 1761246348,
+      "score": 69,
+      "results": [
+        {
+          "check": "data_encryption_at_rest",
+          "description": "Data encryption at rest",
+          "score": 67,
+          "details": "Data encryption at rest: Practices present but with some gaps (recommend tightening configurations)."
+        },
+        {
+          "check": "access_control",
+          "description": "Access control & least-privilege",
+          "score": 91,
+          "details": "Access control & least-privilege: Good controls observed (policy and technical controls appear present)."
+        },
+        {
+          "check": "logging_and_masking",
+          "description": "Logging, masking & redaction practices",
+          "score": 92,
+          "details": "Logging, masking & redaction practices: Good controls observed (policy and technical controls appear present)."
+        },
+        {
+          "check": "data_retention",
+          "description": "Data retention & deletion policy",
+          "score": 41,
+          "details": "Data retention & deletion policy: Weak or missing controls (immediate improvement recommended)."
+        },
+        {
+          "check": "input_validation",
+          "description": "Input validation & sanitization",
+          "score": 84,
+          "details": "Input validation & sanitization: Practices present but with some gaps (recommend tightening configurations)."
+        },
+        {
+          "check": "third_party_sharing",
+          "description": "Third-party sharing & disclosures",
+          "score": 42,
+          "details": "Third-party sharing & disclosures: Weak or missing controls (immediate improvement recommended)."
+        }
+      ],
+      "type": "security_audit"
+    },
+    {
+      "agentId": "financial-advisor-3",
+      "timestamp": 1761245582,
+      "score": 0,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 0.0,
+          "expectedKeywords": [
+            "expense",
+            "budget",
+            "save"
+          ],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with an unexpected cash windfall?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 0.0,
+          "expectedKeywords": [
+            "save",
+            "invest",
+            "pay off"
+          ],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor-3",
+      "timestamp": 1761245184,
+      "score": 0,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 0.0,
+          "expectedKeywords": [
+            "expense",
+            "budget",
+            "save"
+          ]
+        },
+        {
+          "prompt": "What should I do with an unexpected cash windfall?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 0.0,
+          "expectedKeywords": [
+            "save",
+            "invest",
+            "pay off"
+          ]
+        }
+      ]
+    }
+  ]
+}

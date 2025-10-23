@@ -28,5 +28,47 @@
     "score": 50,
     "rentCount": 1,
     "chatCount": 1
+  },
+  "financial-advisor-2": {
+    "agentId": "financial-advisor-2",
+    "owner": "0xf1a68c0d4c1a8de334240050899324b713cfc677",
+    "domain": "finance",
+    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
+    "manifestUrl": "http://localhost:8000/manifest.json",
+    "scoringInputs": {
+      "model": "simple-heuristic",
+      "metrics": [
+        "description_length",
+        "presence_of_examples"
+      ]
+    },
+    "address": null,
+    "price": 0,
+    "score": 0,
+    "rentCount": 0,
+    "chatCount": 0,
+    "lastEvaluated": 1761244868,
+    "verified": false
+  },
+  "financial-advisor-3": {
+    "agentId": "financial-advisor-3",
+    "owner": "0xf1a68c0d4c1a8de334240050899324b713cfc677",
+    "domain": "finance",
+    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
+    "manifestUrl": "http://localhost:8000/manifest.json",
+    "scoringInputs": {
+      "model": "simple-heuristic",
+      "metrics": [
+        "description_length",
+        "presence_of_examples"
+      ]
+    },
+    "address": null,
+    "price": 0,
+    "score": 69,
+    "rentCount": 2,
+    "chatCount": 0,
+    "lastEvaluated": 1761246510,
+    "verified": true
   }
 }
