@@ -1,3 +1,0 @@
-uagents
-pydantic
-httpx
