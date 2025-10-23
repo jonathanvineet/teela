@@ -1,3 +1,15 @@
+# TEELA
+
+Agent-driven rental marketplace prototype.
+
+This repository contains frontend, contracts and agents for the TEELA project. See each folder for setup instructions.
+
+Phases:
+- Frontend: React + Vite + RainbowKit/wagmi
+- Contracts: Hardhat for smart contracts
+- Agents: Python + uAgents
+
+See `/README_SETUP.md` for a quick start.
 # React + Vite
 
 This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.

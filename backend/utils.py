@@ -33,11 +33,11 @@ ERC20_ABI = [
 
 def get_eth_balance(address: str) -> dict:
     try:
-        checksum = w3.toChecksumAddress(address)
+        checksum = w3.to_checksum_address(address)
     except Exception:
         raise
     wei = w3.eth.get_balance(checksum)
-    ether = w3.fromWei(wei, 'ether')
+    ether = w3.from_wei(wei, 'ether')
     return {"wei": str(wei), "ether": str(Decimal(ether))}
 
 

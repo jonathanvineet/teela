@@ -77,5 +77,19 @@ def tx_sign_send():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
+# Agent status endpoint
+@app.route('/api/agent-status', methods=['GET'])
+def agent_status():
+    try:
+        # Mocked agent status for now
+        agent_info = {
+            'name': 'TeelaAgent',
+            'address': 'agent1qvtppcm6ewputkcrxufnta3talza72k3nhc0fh8da4zc2ukk82s3xn0m6nc',
+            'online': True
+        }
+        return jsonify(agent_info)
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=5000, debug=True)
+    app.run(host='0.0.0.0', port=5001, debug=True)
