@@ -1,0 +1,10 @@
+{
+  "financial-advisor": {
+    "agentId": "financial-advisor",
+    "name": "FinancialAdvisor",
+    "manifestUrl": "http://localhost:8100/agents/financial-advisor/manifest.json",
+    "endpoint": "http://localhost:8100/agents/financial-advisor/test",
+    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
+    "domain": "finance"
+  }
+}

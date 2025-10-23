@@ -1,0 +1,32 @@
+{
+  "test": {
+    "agentId": "test",
+    "owner": "0xf1a68c0d4c1a8de334240050899324b713cfc677",
+    "domain": "legal",
+    "description": "dik",
+    "manifestUrl": "http:test.com",
+    "scoringInputs": null,
+    "address": null,
+    "price": 0,
+    "score": "unscored"
+  },
+  "financial-advisor": {
+    "agentId": "financial-advisor",
+    "owner": "0xf1a68c0d4c1a8de334240050899324b713cfc677",
+    "domain": "finance",
+    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
+    "manifestUrl": "http://localhost:8000/manifest.json",
+    "scoringInputs": {
+      "model": "simple-heuristic",
+      "metrics": [
+        "description_length",
+        "presence_of_examples"
+      ]
+    },
+    "address": null,
+    "price": 0,
+    "score": 50,
+    "rentCount": 0,
+    "chatCount": 0
+  }
+}

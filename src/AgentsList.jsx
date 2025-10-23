@@ -57,9 +57,12 @@ export default function AgentsList({ onOpenChat }) {
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12 }}>
         {listings.map((l) => (
           <div key={l.id} style={{ border: '1px solid #eee', padding: 12, borderRadius: 8 }}>
-            <h3>{l.name}</h3>
+            <h3 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <span>{l.name}</span>
+              <small style={{ color: '#666' }}>{l.domain || 'unknown'}</small>
+            </h3>
             <p style={{ color: '#666' }}>{l.description}</p>
-            <p>Price: {l.price}</p>
+            <p>Price: {l.price} • Score: <strong>{l.score ?? 'unscored'}</strong></p>
             <div style={{ display: 'flex', gap: 8 }}>
               <button disabled={!isConnected} onClick={() => onOpenChat(l)}>{permissions[l.id] ? 'Chat' : 'Rent & Chat'}</button>
             </div>

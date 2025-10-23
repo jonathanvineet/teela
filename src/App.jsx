@@ -8,6 +8,8 @@ import { getEthBalanceFromBackend } from './api'
 import { ethers } from 'ethers'
 import AgentChat from './AgentChat'
 import AgentsList from './AgentsList'
+import AgentRegister from './AgentRegister'
+import AgentUpload from './AgentUpload'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -16,7 +18,7 @@ function App() {
   const [walletBalance, setWalletBalance] = useState(null)
   const [agentStatus, setAgentStatus] = useState(null)
   const [openChat, setOpenChat] = useState(false)
-  const [view, setView] = useState('dashboard') // 'dashboard' | 'agents'
+    const [view, setView] = useState('dashboard') // 'dashboard' | 'agents' | 'register' | 'owner'
   const [activeAgent, setActiveAgent] = useState(null)
 
   useEffect(() => {
@@ -86,11 +88,15 @@ function App() {
         <div style={{ display: 'flex', gap: 12 }}>
           <button onClick={() => setView('dashboard')}>Dashboard</button>
           <button onClick={() => setView('agents')}>Agents</button>
+          <button onClick={() => setView('register')}>Register Agent</button>
+          <button onClick={() => setView('upload')}>Upload Agent</button>
+            <button onClick={() => setView('owner')}>Owner Dashboard</button>
         </div>
         <div>
           {isConnected ? <span>Connected: {address?.slice(0,6)}...{address?.slice(-4)}</span> : <ConnectButton />}
         </div>
       </nav>
+import OwnerDashboard from './OwnerDashboard'
 
       <div style={{ padding: 20, fontFamily: 'Inter,system-ui,sans-serif' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -123,6 +129,13 @@ function App() {
 
       {view === 'agents' && (
         <AgentsList onOpenChat={(agent) => { setActiveAgent(agent); setOpenChat(true); }} />
+      )}
+
+      {view === 'register' && (
+        <AgentRegister />
+      )}
+      {view === 'upload' && (
+        <AgentUpload />
       )}
     </>
   )

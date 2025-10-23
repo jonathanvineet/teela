@@ -4,9 +4,10 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently \"npm:dev:backend\" \"npm:dev:frontend\"",
-    "dev:backend": "bash backend/start-backend.sh",
-    "dev:frontend": "vite",
+  "dev": "bash scripts/start-dev-all.sh",
+  "dev:backend": "bash backend/start-backend.sh",
+  "dev:frontend": "vite",
+  "dev:lab": "python3 agents/lab_simulator.py",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview"

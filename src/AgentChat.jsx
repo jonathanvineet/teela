@@ -1,10 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { useAccount, useSigner } from 'wagmi'
+import { useAccount } from 'wagmi'
 import { ethers } from 'ethers'
 
 export default function AgentChat({ agentName = 'Alice', onClose }) {
   const { address, isConnected } = useAccount()
-  const { data: wagmiSigner } = useSigner()
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
@@ -78,7 +77,8 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
     if (!isConnected || !address) return
     try {
       // Prefer MetaMask when multiple wallets are injected (e.g., OKX + MetaMask)
-      let signature = null
+  let signature = null
+  let _USED_NONCE = null
 
       // If multiple injected providers exist, prefer MetaMask's provider so the
       // signature definitely comes from the MetaMask extension (not other wallets)
@@ -89,31 +89,43 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
           metaProvider = eth.providers.find((p) => p.isMetaMask)
         }
         if (!metaProvider && eth.isMetaMask) metaProvider = eth
-
+  // nonce will be stored in _USED_NONCE
         if (metaProvider) {
           const provider = new ethers.BrowserProvider(metaProvider)
           const mmSigner = await provider.getSigner()
-          const message = `Rent agent:${agentName}`
+          // request nonce for rent
+          const nonceRes = await fetch(`/api/nonce?subject=${address}&purpose=rent`)
+          const nonceData = await nonceRes.json()
+          const nonce = nonceData.nonce
+          const message = `Rent agent:${agentName}:${address}:${nonce}`
           signature = await mmSigner.signMessage(message)
+          // include nonce in the body later
+          _USED_NONCE = nonce
         }
       }
 
-      // Fall back to wagmi's connected signer if we didn't obtain a MetaMask
-      // signature above. wagmi's signer will sign with the currently connected
-      // wallet (Connector selected in RainbowKit).
-      if (!signature) {
-        if (!wagmiSigner) {
+      // Fall back to any injected provider (window.ethereum) if MetaMask isn't
+      // available. If there is no injected provider, we can't sign.
+        if (!signature) {
+        if (typeof window !== 'undefined' && window.ethereum) {
+          const provider = new ethers.BrowserProvider(window.ethereum)
+          const fallbackSigner = await provider.getSigner()
+          const nonceRes = await fetch(`/api/nonce?subject=${address}&purpose=rent`)
+          const nonceData = await nonceRes.json()
+          const nonce = nonceData.nonce
+          const message = `Rent agent:${agentName}:${address}:${nonce}`
+          signature = await fallbackSigner.signMessage(message)
+          _USED_NONCE = nonce
+        } else {
           alert('No signer available to create signature')
           return
         }
-        const message = `Rent agent:${agentName}`
-        signature = await wagmiSigner.signMessage(message)
       }
 
       const res = await fetch('/api/agent-rent', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent: agentName, user: address, signature }),
+  body: JSON.stringify({ agent: agentName, user: address, signature, nonce: _USED_NONCE }),
       })
       if (!res.ok) throw new Error('rent failed')
       const data = await res.json()

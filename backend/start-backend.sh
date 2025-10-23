@@ -1,4 +1,3 @@
-echo "Starting backend with $PYTHON_BIN (loading backend/.env if present)"
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -42,4 +41,5 @@ fi
 
 echo "Starting backend with $PYTHON_BIN (loading $BACKEND_DIR/.env if present)"
 cd "$BACKEND_DIR"
+exec "$PYTHON_BIN" app.py
 exec "$PYTHON_BIN" app.py
