@@ -161,6 +161,27 @@ CHAT_STATS_FILE = Path(__file__).resolve().parent / 'agent_chat_stats.json'
 _chat_stats_lock = Lock()
 
 
+# Evaluations storage (file-backed)
+EVALUATIONS_FILE = Path(__file__).resolve().parent / 'agent_evaluations.json'
+_evaluations_lock = Lock()
+
+
+def _load_evaluations():
+    if not EVALUATIONS_FILE.exists():
+        return {}
+    try:
+        with EVALUATIONS_FILE.open('r', encoding='utf8') as f:
+            return json.load(f)
+    except Exception:
+        return {}
+
+
+def _save_evaluations(data):
+    with _evaluations_lock:
+        with EVALUATIONS_FILE.open('w', encoding='utf8') as f:
+            json.dump(data, f, indent=2)
+
+
 # Nonce store for replay protection: maps subject (owner or user) -> list of used nonces
 NONCES_FILE = Path(__file__).resolve().parent / 'nonces.json'
 _nonces_lock = Lock()
@@ -450,10 +471,12 @@ def agent_rent():
     try:
         body = request.get_json() or {}
         agent = (body.get('agent') or '').strip()
-        user = (body.get('user') or '').strip().lower()
+        # Preserve raw user string for canonical message building, normalize for nonce lookup
+        user_raw = (body.get('user') or '').strip()
+        user = user_raw.lower()
         signature = (body.get('signature') or '').strip()
 
-        if not agent or not user or not signature:
+        if not agent or not user_raw or not signature:
             return jsonify({'error': 'agent, user, and signature required'}), 400
 
         # require nonce for rent signing
@@ -464,7 +487,7 @@ def agent_rent():
         nonces = _load_nonces()
         subject_nonces = nonces.get(user, [])
         if nonce not in subject_nonces:
-            app.logger.warning(f"agent_rent: invalid or missing nonce for user={user} nonce={nonce} known_nonces={subject_nonces}")
+            app.logger.warning(f"agent_rent: invalid or missing nonce for user={user_raw} nonce={nonce} known_nonces={subject_nonces}")
             return jsonify({'error': 'invalid or missing nonce'}), 400
         try:
             subject_nonces.remove(nonce)
@@ -473,7 +496,8 @@ def agent_rent():
         except Exception:
             pass
 
-        message_text = f"Rent agent:{agent}:{user}:{nonce}"
+        # Use the exact user string the client used when signing (to preserve checksum case)
+        message_text = f"Rent agent:{agent}:{user_raw}:{nonce}"
         app.logger.debug(f"agent_rent: canonical_message='{message_text}' signature={signature}")
         message = encode_defunct(text=message_text)
         try:
@@ -481,8 +505,8 @@ def agent_rent():
         except Exception as ex:
             app.logger.warning(f"agent_rent: signature recover error: {ex}")
             return jsonify({'error': 'signature recovery error', 'exception': str(ex)}), 400
-        if recovered.lower() != user.lower():
-            app.logger.warning(f"agent_rent: signature verification failed for agent={agent} user={user} recovered={recovered}")
+        if recovered.lower() != user:
+            app.logger.warning(f"agent_rent: signature verification failed for agent={agent} user={user_raw} recovered={recovered}")
             return jsonify({'error': 'signature verification failed', 'recovered': recovered}), 400
 
         rentals = _load_rentals()
