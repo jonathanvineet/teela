@@ -4,6 +4,7 @@ from typing import Any, Dict, Optional
 
 from pydantic import BaseModel, Field
 from uagents import Agent, Context, Model
+from agents.asi_one import register_with_asi, forward_incoming
 
 # Configuration via environment (useful for Vercel/containers/tests)
 AGENT_NAME = os.environ.get("AGENT_NAME", "teela_agent")
@@ -48,6 +49,17 @@ def register_agent() -> str:
 async def on_startup(ctx: Context):
     ctx.logger.info(f"Starting agent '{agent.name}' on port {AGENT_PORT}")
     ctx.logger.info(f"Agent address: {agent.address}")
+    # Attempt to register with ASI:One if configured
+    try:
+        registered = await register_with_asi({
+            "name": agent.name,
+            "address": agent.address,
+            "port": AGENT_PORT,
+        })
+        if registered:
+            ctx.logger.info("Agent registered with ASI:One")
+    except Exception:
+        ctx.logger.exception("ASI registration attempt failed")
 
 
 def _simple_reasoning(command: str, args: Optional[Dict[str, Any]] = None) -> str:
@@ -111,6 +123,11 @@ async def handle_message(ctx: Context, sender: str, msg: CommandRequest):
 
     # Reuse REST handler logic for parity
     response = await handle_rest_command(ctx, msg)
+    # Forward message to ASI:One for observability if configured
+    try:
+        await forward_incoming(sender, {"command": msg.command, "args": msg.args})
+    except Exception:
+        ctx.logger.exception("Failed to forward to ASI")
     await ctx.send(sender, response)
 
 
