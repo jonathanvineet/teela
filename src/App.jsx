@@ -6,6 +6,8 @@ import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount } from 'wagmi'
 import { getEthBalanceFromBackend } from './api'
 import { ethers } from 'ethers'
+import AgentChat from './AgentChat'
+import AgentsList from './AgentsList'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -13,6 +15,9 @@ function App() {
   const [backendBalance, setBackendBalance] = useState(null)
   const [walletBalance, setWalletBalance] = useState(null)
   const [agentStatus, setAgentStatus] = useState(null)
+  const [openChat, setOpenChat] = useState(false)
+  const [view, setView] = useState('dashboard') // 'dashboard' | 'agents'
+  const [activeAgent, setActiveAgent] = useState(null)
 
   useEffect(() => {
     if (!isConnected || !address) return
@@ -37,7 +42,8 @@ function App() {
       const res = await fetch('/api/agent-status');
       if (!res.ok) return null;
       return await res.json();
-    } catch (e) {
+    } catch (err) {
+      console.error(err)
       return null;
     }
   }
@@ -76,6 +82,16 @@ function App() {
         Click on the Vite and React logos to learn more
       </p>
 
+      <nav style={{ padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
+        <div style={{ display: 'flex', gap: 12 }}>
+          <button onClick={() => setView('dashboard')}>Dashboard</button>
+          <button onClick={() => setView('agents')}>Agents</button>
+        </div>
+        <div>
+          {isConnected ? <span>Connected: {address?.slice(0,6)}...{address?.slice(-4)}</span> : <ConnectButton />}
+        </div>
+      </nav>
+
       <div style={{ padding: 20, fontFamily: 'Inter,system-ui,sans-serif' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1>TEELA 
@@ -95,8 +111,19 @@ function App() {
           ) : (
             <p>Loading agent status...</p>
           )}
+          <div style={{ marginTop: 16 }}>
+            <button onClick={() => setOpenChat(true)}>Agent Chat</button>
+          </div>
         </section>
       </div>
+
+      {openChat && (
+        <AgentChat agentName={(activeAgent && activeAgent.name) || agentStatus?.name || 'Alice'} onClose={() => setOpenChat(false)} />
+      )}
+
+      {view === 'agents' && (
+        <AgentsList onOpenChat={(agent) => { setActiveAgent(agent); setOpenChat(true); }} />
+      )}
     </>
   )
 }

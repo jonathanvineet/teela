@@ -4,3 +4,4 @@ python-dotenv
 requests
 eth-abi
 uagents
+flask-cors
