@@ -7,7 +7,5 @@
   "scoringInputs": {
     "model": "simple-heuristic",
     "metrics": ["description_length", "presence_of_examples"]
-  },
+  {}
   "address": null,
-  "price": 0
-}

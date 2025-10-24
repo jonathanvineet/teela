@@ -18,12 +18,22 @@ contract ManagedRental {
     uint256 public startTime;
     bool public listed;
 
+    // Agent metadata registered by owner for this contract (single-agent contract)
+    bytes32 public agentId;
+    string public metadataUri; // optional metadata or manifest URL
+    uint16 public score; // optional owner-supplied score/quality metric (0-65535)
+    bool public registered;
+
+    // simple non-reentrancy guard
+    uint256 private _locked;
+
     event Listed(address indexed owner);
     event Unlisted(address indexed owner);
     event PriceUpdated(uint256 oldPrice, uint256 newPrice);
     event DurationUpdated(uint256 oldDuration, uint256 newDuration);
     event Rented(address indexed renter, uint256 startTime, uint256 duration);
     event RentalEnded(address indexed by, address indexed previousRenter);
+    event AgentRegistered(bytes32 indexed agentId, uint256 pricePerHour, uint256 durationSeconds, string metadataUri, uint16 score);
 
     modifier onlyOwner() {
         require(msg.sender == owner, "ManagedRental: only owner");
@@ -35,11 +45,30 @@ contract ManagedRental {
         _;
     }
 
+    modifier nonReentrant() {
+        require(_locked == 0, "ManagedRental: reentrant");
+        _locked = 1;
+        _;
+        _locked = 0;
+    }
+
     constructor(uint256 _pricePerHourWei, uint256 _rentalDurationSeconds) {
         owner = msg.sender;
         pricePerHour = _pricePerHourWei;
         rentalDurationSeconds = _rentalDurationSeconds == 0 ? 3600 : _rentalDurationSeconds;
         listed = true;
+    }
+
+    /// @notice Owner registers the agent metadata for this contract. Owner should call this after deployment.
+    function registerAgent(bytes32 _agentId, uint256 _pricePerHourWei, uint256 _rentalDurationSeconds, string calldata _metadataUri, uint16 _score) external onlyOwner {
+        agentId = _agentId;
+        pricePerHour = _pricePerHourWei;
+        rentalDurationSeconds = _rentalDurationSeconds == 0 ? 3600 : _rentalDurationSeconds;
+        metadataUri = _metadataUri;
+        score = _score;
+        listed = true;
+        registered = true;
+        emit AgentRegistered(_agentId, pricePerHour, rentalDurationSeconds, _metadataUri, _score);
     }
 
     // Convenience view to match older ABI naming: rentalAmount -> pricePerHour
@@ -81,15 +110,17 @@ contract ManagedRental {
     /// @notice Rent for one period (owner defines pricePerHour which is treated as the price for one rental period)
     /// The caller must send exactly `pricePerHour` wei. Funds are forwarded to the owner immediately.
     function rent() external payable {
+        require(registered, "ManagedRental: agent not registered");
         require(listed, "ManagedRental: not listed");
         require(renter == address(0), "ManagedRental: already rented");
+        require(msg.sender != owner, "ManagedRental: owner cannot rent");
         require(msg.value == pricePerHour, "ManagedRental: incorrect rental amount");
 
         // set renter and start time before transferring funds to reduce reentrancy risk
         renter = msg.sender;
         startTime = block.timestamp;
 
-        // forward funds to owner; require success
+        // forward funds to owner; use nonReentrant pattern to be safer
         (bool sent, ) = payable(owner).call{value: msg.value}("");
         require(sent, "ManagedRental: payment transfer failed");
 
@@ -107,6 +138,11 @@ contract ManagedRental {
         renter = address(0);
         startTime = 0;
         emit RentalEnded(msg.sender, prev);
+    }
+
+    /// @notice View helper: get a summary of the registered agent
+    function agentInfo() external view returns (bytes32 _agentId, uint256 _pricePerHour, uint256 _rentalDurationSeconds, string memory _metadataUri, uint16 _score, bool _listed, bool _registered) {
+        return (agentId, pricePerHour, rentalDurationSeconds, metadataUri, score, listed, registered);
     }
 
     /// @notice View helper: is the rental currently active?

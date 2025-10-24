@@ -7,6 +7,9 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
   const [messages, setMessages] = useState([])
   const [input, setInput] = useState('')
   const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState(null)
+  const [debug, setDebug] = useState({})
+  const [rentalStatus, setRentalStatus] = useState(null)
   const scrollRef = useRef(null)
 
   useEffect(() => {
@@ -74,68 +77,69 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
   }
 
   async function rentAgent() {
+    // New flow: prefer on-chain payment. If caller is owner, they are already permitted.
     if (!isConnected || !address) return
     try {
-      // Prefer MetaMask when multiple wallets are injected (e.g., OKX + MetaMask)
-  let signature = null
-  let _USED_NONCE = null
+      // First, fetch the rental status (price) from backend
+      const q = new URLSearchParams({ agent: agentName })
+      const statusRes = await fetch('/api/agent-rental-status?' + q.toString())
+      if (!statusRes.ok) throw new Error('failed to fetch rental status')
+      const statusJson = await statusRes.json()
+      setRentalStatus(statusJson)
 
-      // If multiple injected providers exist, prefer MetaMask's provider so the
-      // signature definitely comes from the MetaMask extension (not other wallets)
-      if (typeof window !== 'undefined' && window.ethereum) {
-        const eth = window.ethereum
-        let metaProvider = null
-        if (eth.providers && Array.isArray(eth.providers)) {
-          metaProvider = eth.providers.find((p) => p.isMetaMask)
-        }
-        if (!metaProvider && eth.isMetaMask) metaProvider = eth
-  // nonce will be stored in _USED_NONCE
-        if (metaProvider) {
-          const provider = new ethers.BrowserProvider(metaProvider)
-          const mmSigner = await provider.getSigner()
-          // request nonce for rent
-          const nonceRes = await fetch(`/api/nonce?subject=${address}&purpose=rent`)
-          const nonceData = await nonceRes.json()
-          const nonce = nonceData.nonce
-          const message = `Rent agent:${agentName}:${address}:${nonce}`
-          signature = await mmSigner.signMessage(message)
-          // include nonce in the body later
-          _USED_NONCE = nonce
-        }
-      }
-
-      // Fall back to any injected provider (window.ethereum) if MetaMask isn't
-      // available. If there is no injected provider, we can't sign.
-        if (!signature) {
-        if (typeof window !== 'undefined' && window.ethereum) {
-          const provider = new ethers.BrowserProvider(window.ethereum)
-          const fallbackSigner = await provider.getSigner()
-          const nonceRes = await fetch(`/api/nonce?subject=${address}&purpose=rent`)
-          const nonceData = await nonceRes.json()
-          const nonce = nonceData.nonce
-          const message = `Rent agent:${agentName}:${address}:${nonce}`
-          signature = await fallbackSigner.signMessage(message)
-          _USED_NONCE = nonce
-        } else {
-          alert('No signer available to create signature')
-          return
-        }
-      }
-
-      const res = await fetch('/api/agent-rent', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-  body: JSON.stringify({ agent: agentName, user: address, signature, nonce: _USED_NONCE }),
-      })
-      if (!res.ok) throw new Error('rent failed')
-      const data = await res.json()
-      if (data.success) {
-        // Refresh permission state from server
+      // If backend says owner (permitted) just refresh permission
+      if (statusJson.owner && statusJson.owner.toLowerCase() === address.toLowerCase()) {
         await checkPermission()
+        return
+      }
+
+      const priceWei = statusJson.rentalAmountWei || statusJson.priceWei || '0'
+      const registryAddress = statusJson.contractAddress || '0x4dc335A01C9E67f532dE68D9475c36001Df5396E'
+
+      if (!window.ethereum) {
+        alert('No injected wallet available for on-chain rent')
+        return
+      }
+
+      // prepare signer and contract
+      const provider = new ethers.BrowserProvider(window.ethereum)
+      const signer = await provider.getSigner()
+      const abi = ['function rentAgent(bytes32) payable']
+      const contract = new ethers.Contract(registryAddress, abi, signer)
+
+      // encode agentId -> bytes32
+      const toBytes32 = (str) => {
+        let b = ethers.toUtf8Bytes(String(str || ''))
+        if (b.length > 32) b = b.slice(0, 32)
+        const arr = new Uint8Array(32)
+        arr.set(b, 0)
+        return ethers.hexlify(arr)
+      }
+      const agentBytes = toBytes32(agentName)
+
+      // send payable transaction
+      const tx = await contract.rentAgent(agentBytes, { value: BigInt(priceWei) })
+      setStatus('Transaction submitted: ' + tx.hash + ' — waiting for confirmation...')
+      setDebug((d) => ({ ...d, rentTx: { hash: tx.hash } }))
+      const receipt = await tx.wait()
+      setDebug((d) => ({ ...d, rentReceipt: receipt }))
+      setStatus('Transaction confirmed: ' + tx.hash)
+
+      // Notify backend to verify and update server-side permissions
+      try {
+        const verifyRes = await fetch('/api/agent-verify-payment', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ agentId: agentName, user: address, txHash: tx.hash }) })
+        const verifyJson = await verifyRes.json()
+        setDebug((d) => ({ ...d, verifyResponse: verifyJson }))
+        if (!verifyRes.ok) throw new Error(JSON.stringify(verifyJson))
+        // Refresh permission
+        await checkPermission()
+      } catch (ve) {
+        console.error('verification failed', ve)
+        alert('Payment succeeded but server verification failed: ' + String(ve))
       }
     } catch (err) {
       console.error(err)
-      alert('Failed to rent agent')
+      alert('Failed to rent agent on-chain: ' + String(err))
     }
   }
 
@@ -176,6 +180,11 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
       <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
         <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={isConnected ? (permitted ? 'Type a message...' : 'Rent to enable chat') : 'Connect wallet to chat'} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd' }} />
         <button onClick={sendMessage} disabled={!isConnected || !input || loading || !permitted} style={{ padding: '8px 12px', borderRadius: 8 }}>{loading ? 'Sending...' : 'Send'}</button>
+      </div>
+      {status && <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{status}</pre>}
+      <div style={{ marginTop: 8 }}>
+        <strong>Debug:</strong>
+  <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{JSON.stringify({ ...debug, rentalStatus }, null, 2)}</pre>
       </div>
     </div>
   )

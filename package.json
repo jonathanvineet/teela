@@ -19,6 +19,7 @@
     "@lit-protocol/types": "^8.0.2",
     "@rainbow-me/rainbowkit": "^2.2.9",
     "@tanstack/react-query": "^5.90.5",
+  "@clerk/clerk-react": "^5.0.0",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
     "viem": "^2.38.3",

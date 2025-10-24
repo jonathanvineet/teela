@@ -11,7 +11,12 @@ spending advice request format.
 """
 
 from uagents import Agent, Context, Message, Response
-import asyncio
+"""
+REMOVED: Agent content cleared per user request.
+"""
+
+def removed_placeholder():
+    return "agent removed"
 
 agent = Agent(
     name="FinancialAdvisor",

@@ -12,20 +12,16 @@
   },
   "financial-advisor": {
     "agentId": "financial-advisor",
-    "owner": "0xf1a68c0d4c1a8de334240050899324b713cfc677",
-    "domain": "finance",
-    "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
-    "manifestUrl": "http://localhost:8000/manifest.json",
+    "owner": "0x670298e73c5e6735e1fdbed858be1d6a26db00b1",
+    "domain": "test",
+    "description": "test",
+    "manifestUrl": "http://localhost:8100/agents/financial-advisor/manifest.json",
     "scoringInputs": {
-      "model": "simple-heuristic",
-      "metrics": [
-        "description_length",
-        "presence_of_examples"
-      ]
+      "score": 100
     },
     "address": null,
     "price": 0,
-    "score": 50,
+    "score": 100,
     "rentCount": 1,
     "chatCount": 1
   },
@@ -70,5 +66,33 @@
     "chatCount": 0,
     "lastEvaluated": 1761246510,
     "verified": true
+  },
+  "financial-advisor-test": {
+    "agentId": "financial-advisor-test",
+    "owner": "0x670298e73c5e6735e1fdbed858be1d6a26db00b1",
+    "domain": "test",
+    "description": "test",
+    "manifestUrl": "http://localhost:8100/agents/financial-advisor-test/manifest.json",
+    "scoringInputs": {
+      "score": 100
+    },
+    "address": null,
+    "price": 0,
+    "score": 50,
+    "rentCount": 0,
+    "chatCount": 0
+  },
+  "adv-financial-agent": {
+    "agentId": "adv-financial-agent",
+    "owner": null,
+    "domain": "finance",
+    "description": "",
+    "manifestUrl": null,
+    "scoringInputs": {},
+    "address": null,
+    "price": 0,
+    "score": 50,
+    "rentCount": 0,
+    "chatCount": 0
   }
 }

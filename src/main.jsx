@@ -1,7 +1,9 @@
+/* eslint-disable no-unused-vars */
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import './index.css';
 import App from './App.jsx';
+import { ClerkProvider } from '@clerk/clerk-react';
 
 import '@rainbow-me/rainbowkit/styles.css';
 import {
@@ -25,7 +27,6 @@ const queryClient = new QueryClient();
 // This is a local convenience only; do not use in production logging.
 (() => {
   const originalWarn = console.warn.bind(console);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   console.warn = (...args) => {
     try {
       const joined = args.map((a) => String(a)).join(' ');
@@ -37,18 +38,25 @@ const queryClient = new QueryClient();
   };
 })();
 
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+if (!PUBLISHABLE_KEY) {
+  throw new Error('Missing Clerk Publishable Key. Set VITE_CLERK_PUBLISHABLE_KEY in .env.local');
+}
+
 createRoot(document.getElementById('root')).render(
   <StrictMode>
-    <QueryClientProvider client={queryClient}>
-      <WagmiConfig config={config}>
-        <RainbowKitProvider appInfo={{}}
-          // @ts-ignore
-          chains={config.chains}
-        >
-          <App />
-        </RainbowKitProvider>
-      </WagmiConfig>
-    </QueryClientProvider>
+    <ClerkProvider publishableKey={PUBLISHABLE_KEY} afterSignOutUrl="/">
+      <QueryClientProvider client={queryClient}>
+        <WagmiConfig config={config}>
+          <RainbowKitProvider appInfo={{}}
+            // @ts-ignore
+            chains={config.chains}
+          >
+            <App />
+          </RainbowKitProvider>
+        </WagmiConfig>
+      </QueryClientProvider>
+    </ClerkProvider>
   </StrictMode>
 );
 

@@ -1,6 +1,6 @@
 {
   "agentId": "financial-advisor",
-  "name": "FinancialAdvisor",
+  "name": "FinancialAdvisor-contract",
   "domain": "finance",
   "description": "A demo financial advisor agent that summarizes spending and gives simple advice.",
   "manifestUrl": "http://localhost:8000/manifest.json",
@@ -9,5 +9,6 @@
     "metrics": ["description_length", "presence_of_examples"]
   },
   "address": null,
-  "price": 0
+  "price": 0.001,
+  "pricePerHourWei": "1000000000000000"
 }

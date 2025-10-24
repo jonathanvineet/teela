@@ -13,6 +13,7 @@ from threading import Lock
 import requests
 from werkzeug.utils import secure_filename
 from web3.exceptions import ContractLogicError
+from runner import get_orchestrator
 
 load_dotenv()
 
@@ -618,6 +619,51 @@ def agent_register():
         return jsonify({'error': str(e)}), 500
 
 
+@app.route('/api/import-agent', methods=['POST'])
+def import_agent():
+    """Import an agent record into the local agents_metadata.json store.
+
+    This endpoint is intended for Owner Dashboard convenience to mirror
+    external agents into the local registry. It does NOT perform signature
+    verification or on-chain registration — use with care.
+
+    Body (json): { agentId, name, domain, description, manifestUrl, owner, price, score }
+    """
+    try:
+        body = request.get_json() or {}
+        agent_id = (body.get('agentId') or '').strip()
+        name = body.get('name')
+        domain = body.get('domain')
+        description = body.get('description')
+        manifest = body.get('manifestUrl')
+        owner = (body.get('owner') or '').strip() or None
+        price = body.get('price', 0)
+        score = body.get('score', 50)
+
+        if not agent_id:
+            return jsonify({'error': 'agentId required'}), 400
+
+        agents = _load_agents()
+        aid = agent_id.lower()
+        agents[aid] = {
+            'agentId': agent_id,
+            'owner': owner,
+            'domain': domain,
+            'description': description,
+            'manifestUrl': manifest,
+            'scoringInputs': {},
+            'address': agents.get(aid, {}).get('address'),
+            'price': price,
+            'score': score,
+            'rentCount': agents.get(aid, {}).get('rentCount', 0),
+            'chatCount': agents.get(aid, {}).get('chatCount', 0)
+        }
+        _save_agents(agents)
+        return jsonify({'success': True, 'agent': agents[aid]})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
 @app.route('/api/agent-permission', methods=['GET'])
 def agent_permission():
     """Check if user is permitted to access the agent (rented).
@@ -1200,6 +1246,44 @@ def agent_evaluation_results():
         return jsonify({'error': 'agent query param required'}), 400
     evaluations = _load_evaluations()
     return jsonify({'agent': agent, 'evaluations': evaluations.get(agent, [])})
+
+
+@app.route('/api/orchestrate', methods=['POST'])
+def api_orchestrate():
+    """Create an orchestration job that runs a sequence of agents against a prompt.
+
+    Body: { owner: '0x..', agents: ['agent1','agent2'], prompt: '...' , aggregation: 'concat' }
+    Returns: { jobId: 'uuid' }
+    """
+    try:
+        body = request.get_json() or {}
+        owner = (body.get('owner') or '').strip()
+        agents = body.get('agents') or []
+        prompt = body.get('prompt') or ''
+        aggregation = body.get('aggregation') or 'concat'
+        if not owner:
+            return jsonify({'error': 'owner required'}), 400
+        if not isinstance(agents, list) or len(agents) == 0:
+            return jsonify({'error': 'agents (non-empty array) required'}), 400
+
+        orch = get_orchestrator()
+        cfg = {'agents': agents, 'prompt': prompt, 'aggregation': aggregation}
+        job_id = orch.create_job(owner, cfg)
+        return jsonify({'jobId': job_id})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/api/orchestration/<job_id>/status', methods=['GET'])
+def api_orchestration_status(job_id):
+    try:
+        orch = get_orchestrator()
+        job = orch.get_job(job_id)
+        if not job:
+            return jsonify({'error': 'job not found'}), 404
+        return jsonify({'job': job})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

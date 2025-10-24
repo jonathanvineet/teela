@@ -10,6 +10,14 @@ import AgentChat from './AgentChat'
 import AgentsList from './AgentsList'
 import AgentRegister from './AgentRegister'
 import AgentUpload from './AgentUpload'
+import {
+  SignedIn,
+  SignedOut,
+  SignInButton,
+  SignUpButton,
+  UserButton,
+} from '@clerk/clerk-react'
+import AgentverseFetch from './AgentverseFetch'
 
 function App() {
   const [count, setCount] = useState(0)
@@ -61,8 +69,17 @@ function App() {
         </a>
       </div>
       <h1>AgentRent (Vite + React)</h1>
-      <div style={{ marginBottom: 16 }}>
+      <div style={{ marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
         <ConnectButton />
+        <div style={{ marginLeft: 12 }}>
+          <SignedOut>
+            <SignInButton />
+            <SignUpButton />
+          </SignedOut>
+          <SignedIn>
+            <UserButton />
+          </SignedIn>
+        </div>
       </div>
 
       {isConnected && (
@@ -98,7 +115,7 @@ function App() {
       </nav>
 import OwnerDashboard from './OwnerDashboard'
 
-      <div style={{ padding: 20, fontFamily: 'Inter,system-ui,sans-serif' }}>
+  <div style={{ padding: 20, fontFamily: 'Inter,system-ui,sans-serif' }}>
         <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <h1>TEELA 
             <span style={{ fontSize: '0.8em', fontWeight: 'normal' }}>Agent Dashboard</span>
@@ -106,7 +123,7 @@ import OwnerDashboard from './OwnerDashboard'
           <ConnectButton />
         </header>
 
-        <section style={{ marginTop: 20 }}>
+  <section style={{ marginTop: 20 }}>
           <h2>Agent Setup / Status</h2>
           {agentStatus ? (
             <div>
@@ -136,6 +153,12 @@ import OwnerDashboard from './OwnerDashboard'
       )}
       {view === 'upload' && (
         <AgentUpload />
+      )}
+      {view === 'owner' && (
+        <div style={{ padding: 20 }}>
+          <h2>Owner Dashboard</h2>
+          <AgentverseFetch />
+        </div>
       )}
     </>
   )

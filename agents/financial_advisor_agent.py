@@ -10,8 +10,18 @@ This agent listens on port 8000 (default for uagents) and responds to a simplifi
 spending advice request format.
 """
 
-from uagents import Agent, Context, Message, Response
+from uagents import Agent, Context
+from uagents_core.models import Model
 import asyncio
+
+
+class Spending(Model):
+    spending_data: list[dict] = []
+
+
+class Advice(Model):
+    advice: str
+
 
 agent = Agent(
     name="FinancialAdvisor",
@@ -39,15 +49,14 @@ def analyze_spending(spending_data):
     return " ".join(advice)
 
 
-@agent.on_message(model=Message)
-async def handle_message(ctx: Context, msg: Message):
-    # Expect message.message to be a dict with 'spending_data': [{category,amount},...]
-    payload = msg.message or {}
-    spending_data = payload.get("spending_data", [])
+@agent.on_message(Spending)
+async def handle_message(ctx: Context, sender: str, msg: Spending):
+    # Expect msg.spending_data to be a list of {category, amount}
+    spending_data = msg.spending_data or []
     advice_text = analyze_spending(spending_data)
-    resp = Response(response=advice_text)
-    # reply to the sender (ctx.sender)
-    await ctx.send(ctx.sender, resp)
+    resp = Advice(advice=advice_text)
+    # reply to the sender
+    await ctx.send(sender, resp)
 
 
 if __name__ == "__main__":

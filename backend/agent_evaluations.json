@@ -192,5 +192,416 @@
         }
       ]
     }
+  ],
+  "financial-advisor": [
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761289428,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761289377,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761289233,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761289159,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761287838,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761286872,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761286341,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761286272,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761286011,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    },
+    {
+      "agentId": "financial-advisor",
+      "timestamp": 1761285519,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    }
+  ],
+  "financial-advisor-test": [
+    {
+      "agentId": "financial-advisor-test",
+      "timestamp": 1761289461,
+      "score": 100,
+      "results": [
+        {
+          "prompt": "How can I reduce monthly expenses?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        },
+        {
+          "prompt": "What should I do with unexpected income?",
+          "response": "Your spending looks balanced across categories.",
+          "status": "ok",
+          "score": 1.0,
+          "expectedKeywords": [],
+          "raw_http": {
+            "status_code": 200,
+            "text": "{\n  \"reply\": \"Your spending looks balanced across categories.\"\n}\n",
+            "json": {
+              "reply": "Your spending looks balanced across categories."
+            },
+            "exception": null
+          }
+        }
+      ]
+    }
   ]
 }
