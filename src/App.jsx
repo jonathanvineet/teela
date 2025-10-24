@@ -1,6 +1,4 @@
 import { useState, useEffect } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
 import './App.css'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { useAccount } from 'wagmi'
@@ -8,8 +6,9 @@ import { getEthBalanceFromBackend } from './api'
 import { ethers } from 'ethers'
 import AgentChat from './AgentChat'
 import AgentsList from './AgentsList'
-import AgentRegister from './AgentRegister'
+// import AgentRegister from './AgentRegister'
 import AgentUpload from './AgentUpload'
+import OwnerDashboard from './OwnerDashboard'
 import {
   SignedIn,
   SignedOut,
@@ -17,17 +16,18 @@ import {
   SignUpButton,
   UserButton,
 } from '@clerk/clerk-react'
-import AgentverseFetch from './AgentverseFetch'
+// Removed legacy AgentverseFetch panel — API key panel in Layout now drives fetching
+import Layout from './Layout'
 
 function App() {
-  const [count, setCount] = useState(0)
   const { address, isConnected } = useAccount()
   const [backendBalance, setBackendBalance] = useState(null)
   const [walletBalance, setWalletBalance] = useState(null)
   const [agentStatus, setAgentStatus] = useState(null)
   const [openChat, setOpenChat] = useState(false)
-    const [view, setView] = useState('dashboard') // 'dashboard' | 'agents' | 'register' | 'owner'
+    const [view, setView] = useState('home') // 'home' | 'dashboard' | 'agents' | 'register' | 'upload' | 'owner'
   const [activeAgent, setActiveAgent] = useState(null)
+
 
   useEffect(() => {
     if (!isConnected || !address) return
@@ -59,108 +59,126 @@ function App() {
   }
 
   return (
-    <>
-      <div>
-        <a href="https://vite.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
-      </div>
-      <h1>AgentRent (Vite + React)</h1>
-      <div style={{ marginBottom: 16, display: 'flex', gap: 12, alignItems: 'center' }}>
-        <ConnectButton />
-        <div style={{ marginLeft: 12 }}>
-          <SignedOut>
-            <SignInButton />
-            <SignUpButton />
-          </SignedOut>
-          <SignedIn>
-            <UserButton />
-          </SignedIn>
-        </div>
-      </div>
-
-      {isConnected && (
-        <div style={{ marginBottom: 16 }}>
-          <h3>Connected address: {address}</h3>
-          <p>Backend balance: {backendBalance ? backendBalance.balance?.ether : 'loading...'}</p>
-          <p>Wallet balance (ethers.js): {walletBalance ?? 'loading...'}</p>
-        </div>
-      )}
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-
-      <nav style={{ padding: 12, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #eee' }}>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={() => setView('dashboard')}>Dashboard</button>
-          <button onClick={() => setView('agents')}>Agents</button>
-          <button onClick={() => setView('register')}>Register Agent</button>
-          <button onClick={() => setView('upload')}>Upload Agent</button>
-            <button onClick={() => setView('owner')}>Owner Dashboard</button>
-        </div>
-        <div>
-          {isConnected ? <span>Connected: {address?.slice(0,6)}...{address?.slice(-4)}</span> : <ConnectButton />}
-        </div>
-      </nav>
-import OwnerDashboard from './OwnerDashboard'
-
-  <div style={{ padding: 20, fontFamily: 'Inter,system-ui,sans-serif' }}>
-        <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h1>TEELA 
-            <span style={{ fontSize: '0.8em', fontWeight: 'normal' }}>Agent Dashboard</span>
-          </h1>
-          <ConnectButton />
-        </header>
-
-  <section style={{ marginTop: 20 }}>
-          <h2>Agent Setup / Status</h2>
-          {agentStatus ? (
-            <div>
-              <p><strong>Name:</strong> {agentStatus.name}</p>
-              <p><strong>Address:</strong> {agentStatus.address}</p>
-              <p><strong>Status:</strong> {agentStatus.online ? 'Online' : 'Offline'}</p>
+    <Layout currentView={view} onNavigate={setView}>
+      <div style={{ display: 'grid', gap: 20 }}>
+        {/* HOME */}
+        {view === 'home' && (
+          <div className="hero-wrap glass">
+            <div className="hero-inner">
+              <h1 className="hero-title">TEELA</h1>
+              <p className="hero-quote">From prompts to protocols: agents become infrastructure.</p>
+              
+              <div className="square-grid">
+                  <div className="glass square">
+                    <div>
+                      <img className="card-thumb" src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" alt="Agents" />
+                      <h3>Agents</h3>
+                      <p>Browse and chat with listed agents by domain.</p>
+                    </div>
+                    <button className="btn primary" onClick={() => setView('agents')}>Open</button>
+                  </div>
+                  <div className="glass square">
+                    <div>
+                      <img className="card-thumb" src="/images/examples.jpeg" alt="Upload Agent" />
+                      <h3>Upload Agent</h3>
+                      <p>Create/host your agent with minimal fields.</p>
+                    </div>
+                    <button className="btn primary" onClick={() => setView('upload')}>Open</button>
+                  </div>
+                  {/* Register card removed per request */}
+                  <div className="glass square">
+                    <div>
+                      <img className="card-thumb" src="/images/owner.avif" alt="Owner Dashboard" />
+                      <h3>Owner Dashboard</h3>
+                      <p>Stats, scoring, and Agentverse integration.</p>
+                    </div>
+                    <button className="btn primary" onClick={() => setView('owner')}>Open</button>
+                  </div>
+                  <div className="glass square">
+                    <div>
+                      <img className="card-thumb" src="/images/examples.jpeg" alt="Explore Examples" />
+                      <h3>Explore Examples</h3>
+                      <p>Discover pre-built agent templates and use cases.</p>
+                    </div>
+                    <button className="btn primary">Explore</button>
+                  </div>
+                  {/* New Teela card (bottom middle) */}
+                  <div className="glass square">
+                    <div>
+                      <img className="card-thumb" src="/images/teela.jpeg" alt="Teela" />
+                      <h3>Teela</h3>
+                      <p>Ask our orchestrator agent.</p>
+                    </div>
+                    <button className="btn primary" onClick={() => setView('agents')}>Ask</button>
+                  </div>
+                  <div className="glass square">
+                    <div>
+                      <img className="card-thumb" src="/images/docs.webp" alt="Documentation" />
+                      <h3>Documentation</h3>
+                      <p>Learn how to build and deploy agents on TEELA.</p>
+                    </div>
+                    <button className="btn primary">Read</button>
+                  </div>
+                </div>
+              </div>
             </div>
-          ) : (
-            <p>Loading agent status...</p>
-          )}
-          <div style={{ marginTop: 16 }}>
-            <button onClick={() => setOpenChat(true)}>Agent Chat</button>
+        )}
+        
+        {/* Wallet status panel */}
+        {isConnected && (
+          <div className="glass card" style={{ textAlign: 'left' }}>
+            <div className="section-title">Connection</div>
+            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+              <div><strong>Address</strong><div className="hint">{address}</div></div>
+              <div><strong>Backend balance</strong><div className="hint">{backendBalance ? backendBalance.balance?.ether : 'loading...'}</div></div>
+              <div><strong>Wallet balance</strong><div className="hint">{walletBalance ?? 'loading...'}</div></div>
+            </div>
           </div>
-        </section>
+        )}
+
+        {/* Dashboard view */}
+        {view === 'dashboard' && (
+          <div className="glass card" style={{ textAlign: 'left' }}>
+            <div className="section-title">Agent Setup / Status</div>
+            {agentStatus ? (
+              <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
+                <div><strong>Name</strong><div className="hint">{agentStatus.name}</div></div>
+                <div><strong>Address</strong><div className="hint">{agentStatus.address}</div></div>
+                <div><strong>Status</strong><div className="hint">{agentStatus.online ? 'Online' : 'Offline'}</div></div>
+              </div>
+            ) : (
+              <p className="muted">Loading agent status...</p>
+            )}
+            <div style={{ marginTop: 12 }}>
+              <button className="btn primary" onClick={() => setOpenChat(true)}>Agent Chat</button>
+            </div>
+          </div>
+        )}
+
+        {/* Conditional views (unchanged logic) */}
+        {openChat && (
+          <div className="glass card" style={{ padding: 0 }}>
+            <AgentChat agentName={(activeAgent && activeAgent.name) || agentStatus?.name || 'Alice'} onClose={() => setOpenChat(false)} />
+          </div>
+        )}
+
+        {view === 'agents' && (
+          <div className="glass card" style={{ padding: 0 }}>
+            <AgentsList onOpenChat={(agent) => { setActiveAgent(agent); setOpenChat(true); }} />
+          </div>
+        )}
+
+        {/* Register view removed per request */}
+        {view === 'upload' && (
+          <div className="glass card" style={{ padding: 0 }}>
+            <AgentUpload />
+          </div>
+        )}
+        {view === 'owner' && (
+          <OwnerDashboard />
+        )}
       </div>
-
-      {openChat && (
-        <AgentChat agentName={(activeAgent && activeAgent.name) || agentStatus?.name || 'Alice'} onClose={() => setOpenChat(false)} />
-      )}
-
-      {view === 'agents' && (
-        <AgentsList onOpenChat={(agent) => { setActiveAgent(agent); setOpenChat(true); }} />
-      )}
-
-      {view === 'register' && (
-        <AgentRegister />
-      )}
-      {view === 'upload' && (
-        <AgentUpload />
-      )}
-      {view === 'owner' && (
-        <div style={{ padding: 20 }}>
-          <h2>Owner Dashboard</h2>
-          <AgentverseFetch />
-        </div>
-      )}
-    </>
+    </Layout>
   )
 }
 

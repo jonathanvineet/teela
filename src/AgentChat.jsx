@@ -144,7 +144,7 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
   }
 
   return (
-    <div style={{ padding: 20, maxWidth: 800, margin: '0 auto' }}>
+    <div style={{ padding: 20, maxWidth: 900, margin: '0 auto' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <h2>Chat with Agent {agentName}</h2>
         <div>
@@ -165,11 +165,11 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
         )}
       </div>
 
-      <div ref={scrollRef} style={{ height: 320, overflowY: 'auto', border: '1px solid #eee', padding: 12, borderRadius: 8, background: '#fafafa' }}>
+      <div ref={scrollRef} className="glass" style={{ height: 360, overflowY: 'auto', padding: 14, borderRadius: 12 }}>
         {messages.length === 0 && <p style={{ color: '#666' }}>No messages yet. Say hi 👋</p>}
         {messages.map((m, idx) => (
-          <div key={idx} style={{ display: 'flex', marginBottom: 8, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
-            <div style={{ maxWidth: '70%', padding: '8px 12px', borderRadius: 12, background: m.role === 'user' ? '#DCF8C6' : m.role === 'agent' ? '#fff' : '#ffe6e6', boxShadow: '0 1px 2px rgba(0,0,0,0.04)' }}>
+          <div key={idx} style={{ display: 'flex', marginBottom: 10, justifyContent: m.role === 'user' ? 'flex-end' : 'flex-start' }}>
+            <div className={`bubble ${m.role}`}>
               <div style={{ fontSize: 14, color: '#111' }}>{m.text}</div>
               <div style={{ fontSize: 11, color: '#888', marginTop: 6 }}>{m.role}</div>
             </div>
@@ -177,9 +177,9 @@ export default function AgentChat({ agentName = 'Alice', onClose }) {
         ))}
       </div>
 
-      <div style={{ marginTop: 12, display: 'flex', gap: 8 }}>
-        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={isConnected ? (permitted ? 'Type a message...' : 'Rent to enable chat') : 'Connect wallet to chat'} style={{ flex: 1, padding: '8px 12px', borderRadius: 8, border: '1px solid #ddd' }} />
-        <button onClick={sendMessage} disabled={!isConnected || !input || loading || !permitted} style={{ padding: '8px 12px', borderRadius: 8 }}>{loading ? 'Sending...' : 'Send'}</button>
+      <div style={{ marginTop: 12, display: 'flex', gap: 10 }}>
+        <input value={input} onChange={(e) => setInput(e.target.value)} placeholder={isConnected ? (permitted ? 'Type a message...' : 'Rent to enable chat') : 'Connect wallet to chat'} style={{ flex: 1 }} />
+        <button onClick={sendMessage} disabled={!isConnected || !input || loading || !permitted}>{loading ? 'Sending...' : 'Send'}</button>
       </div>
       {status && <pre style={{ whiteSpace: 'pre-wrap', marginTop: 8 }}>{status}</pre>}
       <div style={{ marginTop: 8 }}>

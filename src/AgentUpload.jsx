@@ -211,93 +211,95 @@ export default function AgentUpload() {
   }
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Create / Upload Agent</h2>
-      <form onSubmit={handleUpload} style={{ display: 'grid', gap: 8, maxWidth: 760 }}>
-        <label>
-          Agent ID (slug) — optional:
-          <input value={agentId} onChange={(e) => setAgentId(e.target.value)} placeholder='financial-advisor (optional)' />
-        </label>
+    <div className="glass card" style={{ padding: 0 }}>
+      <div style={{ padding: 24 }}>
+        <div className="section-title">Create / Upload Agent</div>
+        <form onSubmit={handleUpload} className="form">
+          <div className="form-grid">
+            <label>
+              <span>Agent ID (slug) — optional</span>
+              <input value={agentId} onChange={(e) => setAgentId(e.target.value)} placeholder='financial-advisor (optional)' />
+            </label>
 
-        <label>
-          Name — required:
-          <input value={name} onChange={(e) => setName(e.target.value)} placeholder='Financial Advisor' />
-        </label>
+            <label>
+              <span>Name — required</span>
+              <input value={name} onChange={(e) => setName(e.target.value)} placeholder='Financial Advisor' />
+            </label>
 
-        <label>
-          Short description:
-          <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder='Short description' />
-        </label>
+            <label>
+              <span>Short description</span>
+              <input value={description} onChange={(e) => setDescription(e.target.value)} placeholder='Short description' />
+            </label>
 
-        <label>
-          Domain / Track:
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <select value={domain || ''} onChange={(e) => setDomain(e.target.value)}>
-              <option value=''>-- none --</option>
-              {TRACKS.map((t) => (
-                <option key={t.id} value={t.id}>{t.name}</option>
-              ))}
-              <option value='__other'>Other (enter below)</option>
-            </select>
+            <label>
+              <span>Domain / Track</span>
+              <select value={domain || ''} onChange={(e) => setDomain(e.target.value)}>
+                <option value=''>-- none --</option>
+                {TRACKS.map((t) => (
+                  <option key={t.id} value={t.id}>{t.name}</option>
+                ))}
+                <option value='__other'>Other (enter below)</option>
+              </select>
+            </label>
+
+            {domain === '__other' && (
+              <label>
+                <span>Custom domain</span>
+                <input value={customDomain} onChange={(e) => setCustomDomain(e.target.value)} placeholder='e.g. gaming, education' />
+              </label>
+            )}
+
+            <label>
+              <span>Model / Manifest URL — optional</span>
+              <input value={modelUrl} onChange={(e) => setModelUrl(e.target.value)} placeholder='https://.../manifest.json or model entrypoint (optional)' />
+            </label>
+
+            <label>
+              <span>Price (optional) — e.g. 0.01 (ETH)</span>
+              <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder='0.01' />
+            </label>
+
+            <label>
+              <span>Contact email (optional)</span>
+              <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder='owner@example.com' />
+            </label>
           </div>
-        </label>
-        {domain === '__other' && (
-          <label>
-            Custom domain:
-            <input value={customDomain} onChange={(e) => setCustomDomain(e.target.value)} placeholder='e.g. gaming, education' />
-          </label>
-        )}
 
-        <label>
-          Model / Manifest URL — optional:
-          <input value={modelUrl} onChange={(e) => setModelUrl(e.target.value)} placeholder='https://.../manifest.json or model entrypoint (optional)' />
-        </label>
-
-        <label>
-          Price (optional) — e.g. 0.01 (ETH):
-          <input value={price} onChange={(e) => setPrice(e.target.value)} placeholder='0.01' />
-        </label>
-
-        <label>
-          Contact email (optional):
-          <input value={contactEmail} onChange={(e) => setContactEmail(e.target.value)} placeholder='owner@example.com' />
-        </label>
-
-        <div style={{ display: 'flex', gap: 8 }}>
-          <button type='submit' disabled={loading}>{loading ? 'Uploading...' : 'Upload Agent'}</button>
-          <button type='button' onClick={() => {
-            // quick clear
-            setAgentId('')
-            setName('')
-            setDescription('')
-            setDomain('')
-            setCustomDomain('')
-            setModelUrl('')
-            setPrice('')
-            setContactEmail('')
-            setStatus(null)
-          }}>Clear</button>
-        </div>
-
-        {status && <pre style={{ whiteSpace: 'pre-wrap' }}>{status}</pre>}
-
-        {/* Inline code editor shown after successful Agentverse upload */}
-        {showCodeEditor && (
-          <div style={{ marginTop: 12, borderTop: '1px solid #eee', paddingTop: 12 }}>
-            <h3>Edit agent code</h3>
-            <div style={{ color: '#666', marginBottom: 8 }}>Paste your agent code below and click Save Code — this will PUT to Agentverse's /v1/hosting/agents/:address/code endpoint.</div>
-            <textarea rows={12} value={codeText} onChange={(e) => setCodeText(e.target.value)} placeholder={'Paste agent code here'} style={{ width: '100%' }} />
-            <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-              <button onClick={saveCodeToAgent} disabled={savingCode}>{savingCode ? 'Saving...' : 'Save Code'}</button>
-              <button onClick={() => { setShowCodeEditor(false); setCodeText(''); setPostUploadAgent(null); setCodeSaveStatus(null) }}>Close</button>
-            </div>
-            {codeSaveStatus && <div style={{ marginTop: 8 }}>{codeSaveStatus}</div>}
-            <div style={{ marginTop: 8, color: '#666' }}>
-              Agent identifier: {_agentAddressFromResponse(postUploadAgent) || 'unknown — please check Agentverse response'}
-            </div>
+          <div className="actions">
+            <button type='submit' disabled={loading}>{loading ? 'Uploading...' : 'Upload Agent'}</button>
+            <button type='button' onClick={() => {
+              setAgentId('')
+              setName('')
+              setDescription('')
+              setDomain('')
+              setCustomDomain('')
+              setModelUrl('')
+              setPrice('')
+              setContactEmail('')
+              setStatus(null)
+            }}>Clear</button>
           </div>
-        )}
-      </form>
+
+          {status && <pre style={{ whiteSpace: 'pre-wrap' }}>{status}</pre>}
+
+          {/* Inline code editor shown after successful Agentverse upload */}
+          {showCodeEditor && (
+            <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 12 }}>
+              <h3>Edit agent code</h3>
+              <div className="muted" style={{ marginBottom: 8 }}>Paste your agent code below and click Save Code — this will PUT to Agentverse's /v1/hosting/agents/:address/code endpoint.</div>
+              <textarea rows={12} value={codeText} onChange={(e) => setCodeText(e.target.value)} placeholder={'Paste agent code here'} style={{ width: '100%' }} />
+              <div className="actions" style={{ marginTop: 8 }}>
+                <button onClick={saveCodeToAgent} disabled={savingCode}>{savingCode ? 'Saving...' : 'Save Code'}</button>
+                <button onClick={() => { setShowCodeEditor(false); setCodeText(''); setPostUploadAgent(null); setCodeSaveStatus(null) }}>Close</button>
+              </div>
+              {codeSaveStatus && <div style={{ marginTop: 8 }}>{codeSaveStatus}</div>}
+              <div className="muted" style={{ marginTop: 8 }}>
+                Agent identifier: {_agentAddressFromResponse(postUploadAgent) || 'unknown — please check Agentverse response'}
+              </div>
+            </div>
+          )}
+        </form>
+      </div>
     </div>
   )
 }

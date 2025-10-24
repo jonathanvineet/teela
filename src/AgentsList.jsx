@@ -59,58 +59,56 @@ export default function AgentsList({ onOpenChat }) {
   const agentsInTrack = selectedTrack ? listings.filter(l => (l.domain || '').toLowerCase() === selectedTrack.toLowerCase()) : []
 
   return (
-    <div style={{ padding: 20 }}>
-      <h2>Tracks</h2>
-      <p style={{ color: '#555' }}>Choose a track to discover agents aligned to that theme.</p>
+    <div className="glass card" style={{ padding: 0 }}>
+      <div style={{ padding: 24 }}>
+        <div className="section-title" style={{ textAlign: 'center' }}>Tracks</div>
+        <p className="muted" style={{ textAlign: 'center', marginTop: -6 }}>Choose a track to discover agents aligned to that theme.</p>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
-        {TRACKS.map(t => (
-          <div key={t.id} style={{ border: '1px solid #eee', padding: 12, borderRadius: 8, background: '#fff' }}>
-            <h3 style={{ margin: 0 }}>{t.name}</h3>
-            <p style={{ color: '#666', marginTop: 6 }}>{t.desc}</p>
-            <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: 8 }}>
-              <small style={{ color: '#888' }}>{listings.filter(l => (l.domain || '').toLowerCase() === t.id).length} agents</small>
-              <div style={{ display: 'flex', gap: 8 }}>
-                <button onClick={() => setSelectedTrack(t.id)}>Open</button>
+        <div className="grid auto" style={{ marginTop: 16 }}>
+          {TRACKS.map(t => (
+            <div key={t.id} className="glass" style={{ padding: 16 }}>
+              <h3 style={{ margin: 0 }}>{t.name}</h3>
+              <p className="muted" style={{ marginTop: 6 }}>{t.desc}</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 12 }}>
+                <small className="muted">{listings.filter(l => (l.domain || '').toLowerCase() === t.id).length} agents</small>
+                <button className="btn primary" onClick={() => setSelectedTrack(t.id)}>Open</button>
               </div>
             </div>
-          </div>
-        ))}
-      </div>
-
-      {selectedTrack && (
-        <div style={{ marginTop: 20 }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <h2>Track: {TRACKS.find(t => t.id === selectedTrack)?.name || selectedTrack}</h2>
-            <div>
-              <button onClick={() => { setSelectedTrack(null); setPermissions({}) }}>Close</button>
-            </div>
-          </div>
-
-          {agentsInTrack.length === 0 ? (
-            <div style={{ padding: 12, border: '1px dashed #ddd', borderRadius: 8 }}>
-              <p style={{ margin: 0 }}>No agents currently listed for this track. Upload your agent under this domain to be discoverable.</p>
-              <p style={{ marginTop: 8 }}><strong>Tip:</strong> Go to Upload Agent and set the Domain to <code>{selectedTrack}</code>.</p>
-            </div>
-          ) : (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: 12, marginTop: 12 }}>
-              {agentsInTrack.map((l) => (
-                <div key={l.id} style={{ border: '1px solid #eee', padding: 12, borderRadius: 8 }}>
-                  <h3 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span>{l.name}</span>
-                    <small style={{ color: '#666' }}>{l.domain || 'unknown'}</small>
-                  </h3>
-                  <p style={{ color: '#666' }}>{l.description}</p>
-                  <p>Price: {l.price} • Score: <strong>{l.score ?? 'unscored'}</strong></p>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button disabled={!isConnected} onClick={() => onOpenChat(l)}>{permissions[l.id] ? 'Chat' : 'Rent & Chat'}</button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
+          ))}
         </div>
-      )}
+
+        {selectedTrack && (
+          <div style={{ marginTop: 20 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div className="section-title" style={{ margin: 0 }}>Track: {TRACKS.find(t => t.id === selectedTrack)?.name || selectedTrack}</div>
+              <button className="btn" onClick={() => { setSelectedTrack(null); setPermissions({}) }}>Close</button>
+            </div>
+
+            {agentsInTrack.length === 0 ? (
+              <div className="glass card">
+                <p style={{ margin: 0 }}>No agents currently listed for this track. Upload your agent under this domain to be discoverable.</p>
+                <p className="muted" style={{ marginTop: 8 }}><strong>Tip:</strong> Go to Upload Agent and set the Domain to <code>{selectedTrack}</code>.</p>
+              </div>
+            ) : (
+              <div className="grid auto" style={{ marginTop: 12 }}>
+                {agentsInTrack.map((l) => (
+                  <div key={l.id} className="glass" style={{ padding: 16 }}>
+                    <h3 style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', margin: 0 }}>
+                      <span>{l.name}</span>
+                      <small className="muted">{l.domain || 'unknown'}</small>
+                    </h3>
+                    <p className="muted" style={{ marginTop: 6 }}>{l.description}</p>
+                    <p>Price: {l.price} • Score: <strong>{l.score ?? 'unscored'}</strong></p>
+                    <div style={{ display: 'flex', gap: 8 }}>
+                      <button className="btn primary" disabled={!isConnected} onClick={() => onOpenChat(l)}>{permissions[l.id] ? 'Chat' : 'Rent & Chat'}</button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
