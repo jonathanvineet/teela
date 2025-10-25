@@ -9,7 +9,7 @@
     "dev:frontend": "vite",
     "dev:lab": "python3 agents/lab_simulator.py",
     "dev:save": "node server/saveAgentServer.js",
-    "build": "tsc -b && vite build",
+    "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview"
   },

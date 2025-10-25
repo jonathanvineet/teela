@@ -1,0 +1,23 @@
+# Python cache
+*.pyc
+__pycache__/
+.venv/
+venv/
+
+# Development files
+.env.local
+*.log
+
+# Node modules (will be installed by Vercel)
+node_modules/
+
+# Hardhat contracts at root (not needed for deployment)
+# Keep src/contracts/ for frontend
+/contracts/
+hardhat.config.js
+hardhat.config.cjs
+ignition/
+test/
+
+# Scripts
+scripts/cleanup-ports.sh

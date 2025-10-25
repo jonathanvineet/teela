@@ -76,13 +76,19 @@ export default function TeelaChat({ domain, onClose, onBack }) {
   async function send() {
     if (!input.trim() || loading) return
     const text = input.trim()
-    setMessages((m) => [...m, { role: 'user', text }])
     setInput('')
     setLoading(true)
     
-    // Add a "thinking" message
-    const thinkingIndex = messages.length + 1
-    setMessages((m) => [...m, { role: 'system', text: '🤔 TEELA is orchestrating responses from specialized agents...' }])
+    // Calculate index BEFORE adding messages
+    const currentLength = messages.length
+    const thinkingIndex = currentLength + 1
+    
+    // Add user message and thinking message together
+    setMessages((m) => [
+      ...m,
+      { role: 'user', text },
+      { role: 'system', text: '🤔 TEELA is orchestrating responses from specialized agents...' }
+    ])
     
     try {
       // Step 1: Submit query and get request_id
@@ -146,13 +152,47 @@ export default function TeelaChat({ domain, onClose, onBack }) {
   }
 
   return (
-    <div style={{ width: '100%', height: '100vh', display: 'flex', flexDirection: 'column', padding: 24 }}>
+    <div style={{ 
+      position: 'relative',
+      width: '100%',
+      height: 'calc(100vh - 140px)',
+      display: 'flex', 
+      flexDirection: 'column',
+      overflow: 'hidden',
+      marginTop: '20px'
+    }}>
       {/* Header with domain info and buttons */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '20px 24px',
+        borderBottom: '1px solid rgba(255,255,255,0.1)',
+        flexShrink: 0
+      }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-          {domain && <span style={{ fontSize: 32 }}>{domain.icon}</span>}
+          {domain && domain.icon && (
+            <img 
+              src={domain.icon} 
+              alt={domain.title}
+              style={{ 
+                width: 48, 
+                height: 48, 
+                borderRadius: 12,
+                objectFit: 'cover',
+                border: '1px solid rgba(255,255,255,0.2)'
+              }} 
+            />
+          )}
           <div>
-            <div style={{ fontSize: 24, fontWeight: 600 }}>{domain ? domain.title : 'Teela'}</div>
+            <div style={{ 
+              fontSize: 28, 
+              fontWeight: 700, 
+              fontFamily: "'Orbitron', 'Rajdhani', sans-serif",
+              letterSpacing: '0.5px'
+            }}>
+              {domain ? domain.title : 'TEELA'}
+            </div>
             {domain && <div className="muted" style={{ fontSize: 14 }}>{domain.description}</div>}
           </div>
         </div>
@@ -163,7 +203,13 @@ export default function TeelaChat({ domain, onClose, onBack }) {
       </div>
 
       {/* Chat messages area */}
-      <div ref={scrollRef} style={{ flex: 1, overflowY: 'auto', padding: '0 8px', marginBottom: 16 }}>
+      <div ref={scrollRef} style={{ 
+        flex: 1, 
+        overflowY: 'auto', 
+        overflowX: 'hidden',
+        padding: '24px',
+        minHeight: 0
+      }}>
         {messages.length === 0 && (
           <p className="muted" style={{ textAlign: 'center', marginTop: 40 }}>
             {domain 
@@ -187,13 +233,25 @@ export default function TeelaChat({ domain, onClose, onBack }) {
         ))}
       </div>
 
-      {/* Input area */}
-      <div style={{ display: 'flex', gap: 8 }}>
+      {/* Input area - Fixed to bottom */}
+      <div style={{ 
+        display: 'flex', 
+        gap: 8,
+        padding: '16px 24px',
+        borderTop: '1px solid rgba(255,255,255,0.1)',
+        background: '#000',
+        flexShrink: 0
+      }}>
         <input 
           value={input} 
           onChange={(e) => setInput(e.target.value)} 
-          onKeyPress={(e) => e.key === 'Enter' && send()}
-          placeholder={loading ? 'Sending...' : 'Type your message...'} 
+          onKeyDown={(e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+              e.preventDefault()
+              send()
+            }
+          }}
+          placeholder={loading ? 'Sending...' : 'Type your message and press Enter...'} 
           disabled={loading} 
           style={{ flex: 1 }} 
         />

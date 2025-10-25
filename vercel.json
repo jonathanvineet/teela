@@ -1,0 +1,41 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "package.json",
+      "use": "@vercel/static-build",
+      "config": {
+        "distDir": "dist"
+      }
+    },
+    {
+      "src": "server/saveAgentServer.js",
+      "use": "@vercel/node"
+    },
+    {
+      "src": "agents/lab_simulator.py",
+      "use": "@vercel/python"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/api/save-agent",
+      "dest": "/server/saveAgentServer.js"
+    },
+    {
+      "src": "/api/lab/(.*)",
+      "dest": "/agents/lab_simulator.py"
+    },
+    {
+      "src": "/api/teela-chat",
+      "dest": "/server/saveAgentServer.js"
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/index.html"
+    }
+  ],
+  "env": {
+    "NODE_ENV": "production"
+  }
+}
