@@ -476,7 +476,7 @@ export default function OwnerDashboard() {
         <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '0 0 12px' }}>
           <div className="sidebar-image">
             <TiltedCard
-              imageSrc="/images/owner.avif"
+              imageSrc="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg"
               altText="Owner Dashboard"
               captionText="Owner Dashboard"
               containerHeight="180px"

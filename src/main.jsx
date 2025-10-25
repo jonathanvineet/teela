@@ -39,9 +39,9 @@ const queryClient = new QueryClient();
   };
 })();
 
-const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-if (!PUBLISHABLE_KEY) {
-  throw new Error('Missing Clerk Publishable Key. Set VITE_CLERK_PUBLISHABLE_KEY in .env.local');
+const PUBLISHABLE_KEY = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY || 'pk_test_placeholder';
+if (!import.meta.env.VITE_CLERK_PUBLISHABLE_KEY) {
+  console.warn('Missing Clerk Publishable Key. Authentication features will be limited.');
 }
 
 createRoot(document.getElementById('root')).render(

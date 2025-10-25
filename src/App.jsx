@@ -161,7 +161,7 @@ function App() {
                       glowColor="132, 0, 255"
                     >
                       <div>
-                        <img className="card-thumb" src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" alt="Agents" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
+                        <img className="card-thumb" src="/images/owner.jpeg" alt="Agents" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                         <h3>Agents</h3>
                         <p>Browse and chat with listed agents by domain.</p>
                       </div>
@@ -194,7 +194,7 @@ function App() {
                       glowColor="132, 0, 255"
                     >
                       <div>
-                        <img className="card-thumb" src="/images/owner.avif" alt="Owner Dashboard" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
+                        <img className="card-thumb" src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" alt="Owner Dashboard" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                         <h3>Owner Dashboard</h3>
                         <p>Stats, scoring, and Agentverse integration.</p>
                       </div>

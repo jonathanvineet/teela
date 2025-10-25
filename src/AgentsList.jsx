@@ -74,7 +74,7 @@ export default function AgentsList({ onOpenChat }) {
               glowColor="132, 0, 255"
             >
               <img 
-                src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" 
+                src="/images/owner.jpeg" 
                 alt="Agents" 
                 style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
               />

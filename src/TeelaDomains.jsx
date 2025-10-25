@@ -61,7 +61,7 @@ const DOMAINS = [
     id: 'mental-health',
     title: 'Mental Wellness',
     description: 'Emotional support, stress management, and mental health resources.',
-    icon: '/images/mentalwellness.jpg_large',
+    icon: '/images/AnyConv.com__mentalwellness.jpg',
     sensitive: true,
     hourlyRate: '0.003'  // ETH per hour
   },
