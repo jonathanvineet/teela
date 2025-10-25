@@ -63,12 +63,11 @@ function App() {
       <div style={{ display: 'grid', gap: 20 }}>
         {/* HOME */}
         {view === 'home' && (
-          <div className="hero-wrap glass">
-            <div className="hero-inner">
-              <h1 className="hero-title">TEELA</h1>
-              <p className="hero-quote">From prompts to protocols: agents become infrastructure.</p>
-              
-              <div className="square-grid">
+          <>
+            <h1 className="hero-title">TEELA</h1>
+            <p className="hero-quote">From prompts to protocols: agents become infrastructure.</p>
+
+            <div className="square-grid">
                   <div className="glass square">
                     <div>
                       <img className="card-thumb" src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" alt="Agents" />
@@ -119,9 +118,8 @@ function App() {
                     </div>
                     <button className="btn primary">Read</button>
                   </div>
-                </div>
-              </div>
             </div>
+          </>
         )}
         
         {/* Wallet status panel */}
