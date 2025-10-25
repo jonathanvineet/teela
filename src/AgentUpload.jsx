@@ -1,4 +1,5 @@
-import { useState } from 'react'
+import { useState, useRef } from 'react'
+import TiltedCard from './TiltedCard'
 
 const TRACKS = [
   { id: 'legal', name: 'Legal Advisor' },
@@ -29,6 +30,8 @@ export default function AgentUpload() {
   const [codeText, setCodeText] = useState('')
   const [savingCode, setSavingCode] = useState(false)
   const [codeSaveStatus, setCodeSaveStatus] = useState(null)
+  const gutterRef = useRef(null)
+  const preRef = useRef(null)
 
   // Only name is required by Agentverse's Create User Agent API.
   // All other fields are optional. Build a minimal payload containing only
@@ -170,6 +173,22 @@ export default function AgentUpload() {
     return lines.join('\n') + (lines.length ? '\n' : '')
   }
 
+  // Simple Python syntax highlighter
+  function highlightPython(src) {
+    if (!src) return ''
+    let s = src
+      .replace(/[&<>]/g, (ch) => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[ch]))
+    s = s.replace(/(^|\s)#.*$/gm, (m) => `<span class="tok-com">${m}</span>`)
+    s = s.replace(/(["'])((?:\\.|(?!\1).)*)\1/g, (m) => `<span class="tok-str">${m}</span>`)
+    s = s.replace(/\b(0x[0-9a-fA-F]+|\d+(?:\.\d+)?)\b/g, '<span class="tok-num">$1</span>')
+    s = s.replace(/\bdef\s+(\w+)/g, 'def <span class="tok-def">$1</span>')
+    s = s.replace(/\bclass\s+(\w+)/g, 'class <span class="tok-cls">$1</span>')
+    const kw = ['def','class','return','if','elif','else','for','while','try','except','finally','with','as','import','from','yield','lambda','pass','break','continue','in','and','or','not','is','None','True','False']
+    const kwRe = new RegExp(`\\b(${kw.join('|')})\\b`, 'g')
+    s = s.replace(kwRe, '<span class="tok-kw">$1</span>')
+    return s
+  }
+
   async function saveCodeToAgent() {
     setCodeSaveStatus(null)
     setSavingCode(true)
@@ -211,9 +230,23 @@ export default function AgentUpload() {
   }
 
   return (
-    <div className="glass card" style={{ padding: 0 }}>
-      <div style={{ padding: 24 }}>
-        <div className="section-title">Create / Upload Agent</div>
+    <div style={{ padding: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '0 0 12px' }}>
+          <div className="sidebar-image">
+            <TiltedCard
+              imageSrc="/images/docs.webp"
+              altText="Upload Agent"
+              captionText="Upload Agent"
+              containerHeight="180px"
+              containerWidth="100%"
+              imageHeight="180px"
+              imageWidth="100%"
+              rotateAmplitude={12}
+              scaleOnHover={1.08}
+              showMobileWarning={false}
+            />
+          </div>
+        </div>
         <form onSubmit={handleUpload} className="form">
           <div className="form-grid">
             <label>
@@ -281,25 +314,52 @@ export default function AgentUpload() {
           </div>
 
           {status && <pre style={{ whiteSpace: 'pre-wrap' }}>{status}</pre>}
+        </form>
 
-          {/* Inline code editor shown after successful Agentverse upload */}
-          {showCodeEditor && (
-            <div style={{ marginTop: 12, borderTop: '1px solid rgba(255,255,255,0.15)', paddingTop: 12 }}>
-              <h3>Edit agent code</h3>
-              <div className="muted" style={{ marginBottom: 8 }}>Paste your agent code below and click Save Code — this will PUT to Agentverse's /v1/hosting/agents/:address/code endpoint.</div>
-              <textarea rows={12} value={codeText} onChange={(e) => setCodeText(e.target.value)} placeholder={'Paste agent code here'} style={{ width: '100%' }} />
-              <div className="actions" style={{ marginTop: 8 }}>
-                <button onClick={saveCodeToAgent} disabled={savingCode}>{savingCode ? 'Saving...' : 'Save Code'}</button>
-                <button onClick={() => { setShowCodeEditor(false); setCodeText(''); setPostUploadAgent(null); setCodeSaveStatus(null) }}>Close</button>
-              </div>
-              {codeSaveStatus && <div style={{ marginTop: 8 }}>{codeSaveStatus}</div>}
-              <div className="muted" style={{ marginTop: 8 }}>
-                Agent identifier: {_agentAddressFromResponse(postUploadAgent) || 'unknown — please check Agentverse response'}
+        {/* Code editor shown after successful Agentverse upload - below the form */}
+        {showCodeEditor && (
+          <div className="glass colorful card" style={{ marginTop: 16, padding: 12, maxWidth: '100%' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 8 }}>
+              <h3 style={{ margin: 0, fontSize: 16 }}>Edit Agent Code</h3>
+              <div className="actions" style={{ margin: 0 }}>
+                <button className="btn primary" onClick={saveCodeToAgent} disabled={savingCode} style={{ fontSize: 13, padding: '6px 12px' }}>{savingCode ? 'Saving...' : 'Save Code'}</button>
+                <button className="btn" onClick={() => { 
+                  setShowCodeEditor(false)
+                  setCodeText('')
+                  setPostUploadAgent(null)
+                  setCodeSaveStatus(null)
+                }} style={{ fontSize: 13, padding: '6px 12px' }}>Close Editor</button>
               </div>
             </div>
-          )}
-        </form>
-      </div>
+            <div className="code-editor" style={{ height: 320, marginBottom: 8 }}>
+              <div className="code-gutter" ref={gutterRef} style={{ height: 320, overflow: 'auto' }}>
+                {codeText.split('\n').map((_, i) => (
+                  <div key={i}>{i + 1}</div>
+                ))}
+              </div>
+              <div className="code-scroller" style={{ height: 320 }}>
+                <pre className="code-pre" ref={preRef} dangerouslySetInnerHTML={{ __html: highlightPython(codeText) }} />
+                <textarea
+                  className="code-input"
+                  value={codeText}
+                  onChange={(e) => setCodeText(e.target.value)}
+                  placeholder="Paste agent code here"
+                  style={{ height: '100%' }}
+                  onScroll={(e) => {
+                    const top = e.target.scrollTop
+                    const left = e.target.scrollLeft
+                    if (gutterRef.current) gutterRef.current.scrollTop = top
+                    if (preRef.current) preRef.current.style.transform = `translate(-${left}px, -${top}px)`
+                  }}
+                />
+              </div>
+            </div>
+            {codeSaveStatus && <div style={{ marginBottom: 4, fontSize: 12, color: codeSaveStatus.includes('success') ? '#9ece6a' : '#f7768e' }}>{codeSaveStatus}</div>}
+            <div className="muted" style={{ fontSize: 11 }}>
+              Agent: {_agentAddressFromResponse(postUploadAgent) || 'unknown'}
+            </div>
+          </div>
+        )}
     </div>
   )
 }

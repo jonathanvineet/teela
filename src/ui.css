@@ -171,6 +171,18 @@ button:disabled, .btn:disabled {
   border-color: rgba(255,255,255,0.4);
 }
 
+.btn.success {
+  background: rgba(0,255,0,0.12);
+  border-color: rgba(0,255,0,0.3);
+  font-weight: 700;
+  color: #00ff00;
+}
+
+.btn.success:hover {
+  background: rgba(0,255,0,0.18);
+  border-color: rgba(0,255,0,0.4);
+}
+
 /* iOS 26 Glass Inputs */
 input, select, textarea {
   background: rgba(0,0,0,0.4);
@@ -206,6 +218,34 @@ input::placeholder, textarea::placeholder {
   box-shadow: var(--glass-shadow), var(--glass-glow);
   overflow: hidden;
   position: relative;
+}
+
+/* Colorful gradient variant for cards (apply on containers, not images) */
+.colorful {
+  position: relative;
+}
+
+.colorful::after {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, #ff7a7a, #ffb86c, #f8f871, #8be9fd, #bd93f9, #ff79c6);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+          mask-composite: exclude;
+  pointer-events: none;
+}
+
+.colorful:hover {
+  box-shadow: 0 0 0 1px rgba(255,255,255,0.15), 0 8px 24px rgba(0,0,0,0.5), 0 0 24px rgba(189,147,249,0.25);
+}
+
+/* Slight tinted background inside colorful cards */
+.colorful > * {
+  background-image: radial-gradient(1200px 1200px at 10% -10%, rgba(189,147,249,0.05), transparent),
+                    radial-gradient(1200px 1200px at 110% 110%, rgba(255,121,198,0.05), transparent);
 }
 
 .glass::before {
@@ -325,6 +365,12 @@ input::placeholder, textarea::placeholder {
   box-shadow: var(--glass-shadow), var(--glass-glow);
 }
 
+/* Sidebar TiltedCard sizing for non-home pages */
+.sidebar-image {
+  width: 320px;
+  max-width: 40vw;
+}
+
 .square h3 {
   margin: 0;
   font-size: 20px;
@@ -347,6 +393,11 @@ input::placeholder, textarea::placeholder {
   backdrop-filter: var(--glass-blur);
   -webkit-backdrop-filter: var(--glass-blur);
   box-shadow: var(--glass-shadow);
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .bubble.user {
@@ -354,12 +405,15 @@ input::placeholder, textarea::placeholder {
   border: 1px solid rgba(255,255,255,0.25);
   color: var(--text);
   margin-left: auto;
+  font-family: var(--font-sans);
+  font-size: 15px;
 }
 
 .bubble.agent {
   background: var(--glass-bg);
   border: 1px solid var(--glass-border);
   color: var(--text);
+  max-width: 90%;
 }
 
 .bubble.system {
@@ -367,6 +421,8 @@ input::placeholder, textarea::placeholder {
   border: 1px solid rgba(255,255,255,0.12);
   color: var(--muted);
   font-size: 13px;
+  font-family: var(--font-sans);
+  white-space: normal;
 }
 
 /* Utility classes */
@@ -626,7 +682,7 @@ input::placeholder, textarea::placeholder {
   color: var(--text);
   font: 13px/20px ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
   white-space: pre;
-  min-height: 240px;
+  min-height: 100%;
   pointer-events: none;
   text-align: left;
 }

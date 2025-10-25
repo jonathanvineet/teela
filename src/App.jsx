@@ -1,10 +1,11 @@
 import { useState, useEffect } from 'react'
 import './App.css'
-import { ConnectButton } from '@rainbow-me/rainbowkit'
-import { useAccount } from 'wagmi'
-import { getEthBalanceFromBackend } from './api'
-import { ethers } from 'ethers'
 import AgentChat from './AgentChat'
+import TeelaChat from './TeelaChat'
+import TeelaDomains from './TeelaDomains'
+import BlurText from './BlurText'
+import ClickSpark from './ClickSpark'
+import { ParticleCard } from './MagicBento'
 import AgentsList from './AgentsList'
 // import AgentRegister from './AgentRegister'
 import AgentUpload from './AgentUpload'
@@ -20,163 +21,278 @@ import {
 import Layout from './Layout'
 
 function App() {
-  const { address, isConnected } = useAccount()
-  const [backendBalance, setBackendBalance] = useState(null)
-  const [walletBalance, setWalletBalance] = useState(null)
-  const [agentStatus, setAgentStatus] = useState(null)
   const [openChat, setOpenChat] = useState(false)
-    const [view, setView] = useState('home') // 'home' | 'dashboard' | 'agents' | 'register' | 'upload' | 'owner'
-  const [activeAgent, setActiveAgent] = useState(null)
-
-
-  useEffect(() => {
-    if (!isConnected || !address) return
-    // call backend
-    getEthBalanceFromBackend(address)
-      .then((data) => setBackendBalance(data))
-      .catch((err) => console.error(err))
-
-    // ethers.js example: use window.ethereum provider
-    if (window.ethereum) {
-      const provider = new ethers.BrowserProvider(window.ethereum)
-      provider.getBalance(address).then((b) => setWalletBalance(ethers.formatEther(b)))
-    }
-  }, [isConnected, address])
-
-  useEffect(() => {
-    fetchAgentStatus().then(setAgentStatus);
-  }, []);
-
-  async function fetchAgentStatus() {
+  const [view, setView] = useState(() => {
+    // Restore view from sessionStorage on reload
     try {
-      const res = await fetch('/api/agent-status');
-      if (!res.ok) return null;
-      return await res.json();
-    } catch (err) {
-      console.error(err)
-      return null;
+      return sessionStorage.getItem('teela_view') || 'home'
+    } catch {
+      return 'home'
+    }
+  })
+  const [activeAgent, setActiveAgent] = useState(null)
+  const [selectedDomain, setSelectedDomain] = useState(() => {
+    // Restore selected domain from sessionStorage
+    try {
+      const saved = sessionStorage.getItem('teela_domain')
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
+  })
+  const [navigationHistory, setNavigationHistory] = useState(() => {
+    // Restore navigation history
+    try {
+      const saved = sessionStorage.getItem('teela_history')
+      return saved ? JSON.parse(saved) : ['home']
+    } catch {
+      return ['home']
+    }
+  })
+  const quotes = [
+    'From prompts to protocols: agents become infrastructure.',
+    'Agents are the new APIs — composable, autonomous, unstoppable.',
+    'Ship agents like microservices. Orchestrate them like teams.',
+    'Own your agent. Own your workflow. Own your data.',
+    'Intents in. Outcomes out. The rest is automation.',
+    'Protocols outlive products. Agents turn products into protocols.',
+    'The interface is not the app — the agent is.',
+  ]
+  const [quoteIndex, setQuoteIndex] = useState(0)
+
+  // Rotate hero quotes every 30 seconds
+  useEffect(() => {
+    const id = setInterval(() => {
+      setQuoteIndex((i) => (i + 1) % quotes.length)
+    }, 30000)
+    return () => clearInterval(id)
+  }, [quotes.length])
+
+  const handleNavigate = (newView) => {
+    if (newView !== view) {
+      const newHistory = [...navigationHistory, newView]
+      setNavigationHistory(newHistory)
+      setView(newView)
+      // Save to sessionStorage
+      try {
+        sessionStorage.setItem('teela_view', newView)
+        sessionStorage.setItem('teela_history', JSON.stringify(newHistory))
+      } catch {
+        // Ignore sessionStorage errors
+      }
+    } else {
+      // If navigating to the same view, don't modify history
+      console.log('Already on view:', newView)
     }
   }
 
+  const handleBack = () => {
+    if (navigationHistory.length > 1) {
+      const newHistory = [...navigationHistory]
+      newHistory.pop() // Remove current
+      const previousView = newHistory[newHistory.length - 1]
+      setNavigationHistory(newHistory)
+      setView(previousView)
+      // Save to sessionStorage
+      try {
+        sessionStorage.setItem('teela_view', previousView)
+        sessionStorage.setItem('teela_history', JSON.stringify(newHistory))
+      } catch {
+        // Ignore sessionStorage errors
+      }
+      // Clear domain selection when going back from teela chat
+      if (previousView === 'teela' && selectedDomain) {
+        setSelectedDomain(null)
+        try {
+          sessionStorage.removeItem('teela_domain')
+        } catch {
+          // Ignore sessionStorage errors
+        }
+      }
+    }
+  }
+
+
   return (
-    <Layout currentView={view} onNavigate={setView}>
-      <div style={{ display: 'grid', gap: 20 }}>
+    <ClickSpark sparkColor="#fff" sparkSize={10} sparkRadius={18} sparkCount={10} duration={450}>
+      <Layout currentView={view} onNavigate={handleNavigate} onBack={handleBack} canGoBack={navigationHistory.length > 1}>
+        <div style={{ display: 'grid', gap: 20 }}>
         {/* HOME */}
         {view === 'home' && (
           <>
             <h1 className="hero-title">TEELA</h1>
-            <p className="hero-quote">From prompts to protocols: agents become infrastructure.</p>
+            <BlurText
+              text={quotes[quoteIndex]}
+              delay={150}
+              animateBy="words"
+              direction="top"
+              className="hero-quote"
+            />
 
-            <div className="square-grid">
-                  <div className="glass square">
+            <div className="square-grid" style={{ 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
+              gap: 28, 
+              maxWidth: '1200px', 
+              margin: '0 auto',
+              '@media (min-width: 900px)': { gridTemplateColumns: 'repeat(3, 1fr)' }
+            }}>
+                  <ParticleCard 
+                    className="glass colorful square" 
+                    style={{ padding: 28, minHeight: 380 }}
+                    enableTilt={true}
+                    enableMagnetism={true}
+                    clickEffect={true}
+                    particleCount={8}
+                    glowColor="132, 0, 255"
+                  >
                     <div>
-                      <img className="card-thumb" src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" alt="Agents" />
+                      <img className="card-thumb" src="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg" alt="Agents" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                       <h3>Agents</h3>
                       <p>Browse and chat with listed agents by domain.</p>
                     </div>
-                    <button className="btn primary" onClick={() => setView('agents')}>Open</button>
-                  </div>
-                  <div className="glass square">
+                    <button className="btn primary" onClick={() => handleNavigate('agents')}>Open</button>
+                  </ParticleCard>
+                  <ParticleCard 
+                    className="glass colorful square" 
+                    style={{ padding: 28, minHeight: 380 }}
+                    enableTilt={true}
+                    enableMagnetism={true}
+                    clickEffect={true}
+                    particleCount={8}
+                    glowColor="132, 0, 255"
+                  >
                     <div>
-                      <img className="card-thumb" src="/images/examples.jpeg" alt="Upload Agent" />
+                      <img className="card-thumb" src="/images/docs.webp" alt="Upload Agent" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                       <h3>Upload Agent</h3>
                       <p>Create/host your agent with minimal fields.</p>
                     </div>
-                    <button className="btn primary" onClick={() => setView('upload')}>Open</button>
-                  </div>
+                    <button className="btn primary" onClick={() => handleNavigate('upload')}>Open</button>
+                  </ParticleCard>
                   {/* Register card removed per request */}
-                  <div className="glass square">
+                  <ParticleCard 
+                    className="glass colorful square" 
+                    style={{ padding: 28, minHeight: 380 }}
+                    enableTilt={true}
+                    enableMagnetism={true}
+                    clickEffect={true}
+                    particleCount={8}
+                    glowColor="132, 0, 255"
+                  >
                     <div>
-                      <img className="card-thumb" src="/images/owner.avif" alt="Owner Dashboard" />
+                      <img className="card-thumb" src="/images/owner.avif" alt="Owner Dashboard" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                       <h3>Owner Dashboard</h3>
                       <p>Stats, scoring, and Agentverse integration.</p>
                     </div>
-                    <button className="btn primary" onClick={() => setView('owner')}>Open</button>
-                  </div>
-                  <div className="glass square">
+                    <button className="btn primary" onClick={() => handleNavigate('owner')}>Open</button>
+                  </ParticleCard>
+                  <ParticleCard 
+                    className="glass colorful square" 
+                    style={{ padding: 28, minHeight: 380 }}
+                    enableTilt={true}
+                    enableMagnetism={true}
+                    clickEffect={true}
+                    particleCount={8}
+                    glowColor="132, 0, 255"
+                  >
                     <div>
-                      <img className="card-thumb" src="/images/examples.jpeg" alt="Explore Examples" />
+                      <img className="card-thumb" src="/images/examples.jpeg" alt="Explore Examples" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                       <h3>Explore Examples</h3>
                       <p>Discover pre-built agent templates and use cases.</p>
                     </div>
                     <button className="btn primary">Explore</button>
-                  </div>
+                  </ParticleCard>
                   {/* New Teela card (bottom middle) */}
-                  <div className="glass square">
+                  <ParticleCard 
+                    className="glass colorful square" 
+                    style={{ padding: 28, minHeight: 380 }}
+                    enableTilt={true}
+                    enableMagnetism={true}
+                    clickEffect={true}
+                    particleCount={8}
+                    glowColor="132, 0, 255"
+                  >
                     <div>
-                      <img className="card-thumb" src="/images/teela.jpeg" alt="Teela" />
+                      <img className="card-thumb" src="/images/teela.jpeg" alt="Teela" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                       <h3>Teela</h3>
                       <p>Ask our orchestrator agent.</p>
                     </div>
-                    <button className="btn primary" onClick={() => setView('agents')}>Ask</button>
-                  </div>
-                  <div className="glass square">
+                    <button className="btn primary" onClick={() => handleNavigate('teela')}>Ask</button>
+                  </ParticleCard>
+                  <ParticleCard 
+                    className="glass colorful square" 
+                    style={{ padding: 28, minHeight: 380 }}
+                    enableTilt={true}
+                    enableMagnetism={true}
+                    clickEffect={true}
+                    particleCount={8}
+                    glowColor="132, 0, 255"
+                  >
                     <div>
-                      <img className="card-thumb" src="/images/docs.webp" alt="Documentation" />
+                      <img className="card-thumb" src="/images/docs.jpg" alt="Documentation" style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12 }} />
                       <h3>Documentation</h3>
                       <p>Learn how to build and deploy agents on TEELA.</p>
                     </div>
                     <button className="btn primary">Read</button>
-                  </div>
+                  </ParticleCard>
             </div>
           </>
-        )}
-        
-        {/* Wallet status panel */}
-        {isConnected && (
-          <div className="glass card" style={{ textAlign: 'left' }}>
-            <div className="section-title">Connection</div>
-            <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-              <div><strong>Address</strong><div className="hint">{address}</div></div>
-              <div><strong>Backend balance</strong><div className="hint">{backendBalance ? backendBalance.balance?.ether : 'loading...'}</div></div>
-              <div><strong>Wallet balance</strong><div className="hint">{walletBalance ?? 'loading...'}</div></div>
-            </div>
-          </div>
-        )}
-
-        {/* Dashboard view */}
-        {view === 'dashboard' && (
-          <div className="glass card" style={{ textAlign: 'left' }}>
-            <div className="section-title">Agent Setup / Status</div>
-            {agentStatus ? (
-              <div className="grid" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
-                <div><strong>Name</strong><div className="hint">{agentStatus.name}</div></div>
-                <div><strong>Address</strong><div className="hint">{agentStatus.address}</div></div>
-                <div><strong>Status</strong><div className="hint">{agentStatus.online ? 'Online' : 'Offline'}</div></div>
-              </div>
-            ) : (
-              <p className="muted">Loading agent status...</p>
-            )}
-            <div style={{ marginTop: 12 }}>
-              <button className="btn primary" onClick={() => setOpenChat(true)}>Agent Chat</button>
-            </div>
-          </div>
         )}
 
         {/* Conditional views (unchanged logic) */}
         {openChat && (
-          <div className="glass card" style={{ padding: 0 }}>
-            <AgentChat agentName={(activeAgent && activeAgent.name) || agentStatus?.name || 'Alice'} onClose={() => setOpenChat(false)} />
-          </div>
+          <ParticleCard className="glass card" style={{ padding: 0 }} enableTilt={true} enableMagnetism={true} clickEffect={true} particleCount={6} glowColor="132, 0, 255">
+            <AgentChat agentName={(activeAgent && activeAgent.name) || 'Alice'} onClose={() => setOpenChat(false)} />
+          </ParticleCard>
+        )}
+
+        {view === 'teela' && !selectedDomain && (
+          <TeelaDomains onSelectDomain={(domain) => {
+            setSelectedDomain(domain)
+            try {
+              sessionStorage.setItem('teela_domain', JSON.stringify(domain))
+            } catch {
+              // Ignore sessionStorage errors
+            }
+          }} />
+        )}
+
+        {view === 'teela' && selectedDomain && (
+          <TeelaChat 
+            domain={selectedDomain} 
+            onClose={() => {
+              setSelectedDomain(null)
+              try {
+                sessionStorage.removeItem('teela_domain')
+              } catch {
+                // Ignore sessionStorage errors
+              }
+              handleNavigate('home')
+            }} 
+            onBack={() => {
+              setSelectedDomain(null)
+              try {
+                sessionStorage.removeItem('teela_domain')
+              } catch {
+                // Ignore sessionStorage errors
+              }
+            }}
+          />
         )}
 
         {view === 'agents' && (
-          <div className="glass card" style={{ padding: 0 }}>
-            <AgentsList onOpenChat={(agent) => { setActiveAgent(agent); setOpenChat(true); }} />
-          </div>
+          <AgentsList onOpenChat={(agent) => { setActiveAgent(agent); setOpenChat(true); }} />
         )}
 
         {/* Register view removed per request */}
         {view === 'upload' && (
-          <div className="glass card" style={{ padding: 0 }}>
-            <AgentUpload />
-          </div>
+          <AgentUpload />
         )}
         {view === 'owner' && (
           <OwnerDashboard />
         )}
-      </div>
-    </Layout>
+        </div>
+      </Layout>
+    </ClickSpark>
   )
 }
 

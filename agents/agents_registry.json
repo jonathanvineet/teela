@@ -1,0 +1,41 @@
+{
+  "domain": {
+    "financial": {
+      "agents": [
+        {
+          "agent_id": "savings",
+          "name": "savings",
+          "address": "agent1qt50a3mwgfegmulhv7dq2kw4x2u5ucaxjggjk4kdlck9s729dacmgl5wnau",
+          "status": "active",
+          "speciality": "",
+          "file": "agents/savings.py",
+          "wallet": "0x670298e73c5E6735E1fdBeD858Be1d6A26db00b1",
+          "imported_at": "2025-10-25T18:38:09.512Z",
+          "connected": true
+        },
+        {
+          "agent_id": "budget",
+          "name": "budget",
+          "address": "agent1qgv43hgx4qvppqlpuq6ld5h5pesgs0jkd6na774jp245f2swcc9jk6nywzn",
+          "status": "active",
+          "speciality": "budget",
+          "file": "agents/budget.py",
+          "wallet": "0x670298e73c5E6735E1fdBeD858Be1d6A26db00b1",
+          "imported_at": "2025-10-25T18:43:49.172Z",
+          "connected": true
+        },
+        {
+          "agent_id": "debt",
+          "name": "debt",
+          "address": "agent1q2zxev5wzthd7eqcrqufsw3ce0dltaxlw6h08hevsnu9kenkjvxwzt8gk8t",
+          "status": "active",
+          "speciality": "debt",
+          "file": "agents/debt.py",
+          "wallet": "0x670298e73c5E6735E1fdBeD858Be1d6A26db00b1",
+          "imported_at": "2025-10-25T18:45:44.948Z",
+          "connected": true
+        }
+      ]
+    }
+  }
+}

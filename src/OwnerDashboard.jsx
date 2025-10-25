@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from 'react'
-import { useAccount } from 'wagmi'
+import { useAccount, useWriteContract } from 'wagmi'
+import TiltedCard from './TiltedCard'
+import BanterLoader from './BanterLoader'
+import { AGENT_REGISTRY_ADDRESS, AGENT_REGISTRY_ABI } from './contracts/AgentRegistry'
 
 export default function OwnerDashboard() {
   const { address, isConnected } = useAccount()
-  const [agents, setAgents] = useState([])
-  const [loading, setLoading] = useState(false)
   const [agentverseAgents, setAgentverseAgents] = useState([])
   const [agentverseLoading, setAgentverseLoading] = useState(false)
   const [connectingAgent, setConnectingAgent] = useState(null)
@@ -17,6 +18,15 @@ export default function OwnerDashboard() {
   const gutterRef = useRef(null)
   const scrollerRef = useRef(null)
   const preRef = useRef(null)
+  const [runFile, setRunFile] = useState(null)
+  const [runRunning, setRunRunning] = useState(false)
+  const [runLogs, setRunLogs] = useState([])
+  const logPollRef = useRef(null)
+  const [importedAgents, setImportedAgents] = useState([])
+  const { writeContract } = useWriteContract()
+  const [connectingMap, setConnectingMap] = useState({})
+  const [isImporting, setIsImporting] = useState(false)
+  const [importMessage, setImportMessage] = useState('')
 
   // Close modal on Escape
   useEffect(() => {
@@ -105,9 +115,289 @@ export default function OwnerDashboard() {
     try { const parsed = typeof jsonStr === 'string' ? JSON.parse(jsonStr) : jsonStr; return unwrapJSON(parsed) } catch { return typeof jsonStr === 'string' ? jsonStr : '' }
   }
 
+  // Save code to both project and Agentverse
+  async function saveToProject() {
+    try {
+      if (!editingAgent) { setEditStatus('No agent selected'); return }
+      const code = editCodeText || ''
+      if (!code.trim()) { setEditStatus('No code to save'); return }
+      const defaultDomain = (editingAgent.domain || selectedDomain || '').trim()
+      const domain = window.prompt('Enter domain for this agent', defaultDomain || 'financial')
+      if (domain === null) return
+      const speciality = window.prompt("What's this agent's speciality? (e.g., portfolio advice)", '') || ''
+      const name = editingAgent.name || editingAgent.id || editingAgent.address || 'agent'
+      const agentAddress = editingAgent.address || editingAgent.id || ''
+      const agent_id = String(name).toLowerCase().replace(/\s+/g, '-')
+      const file = `${agent_id}.py`
+      
+      // Include wallet address for tracking
+      const payload = { 
+        domain, 
+        speciality, 
+        agent: { agent_id, name, address: agentAddress, status: 'active', wallet: address }, 
+        file, 
+        code 
+      }
+      
+      setEditStatus('Saving to project and Agentverse...')
+      
+      // Save to project
+      const res = await fetch('http://localhost:5002/api/save-agent-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setEditStatus('Save to project failed: ' + (j?.error || res.status)); return }
+      
+      // Also save to Agentverse
+      try {
+        const token = (() => { try { return localStorage.getItem('agentverse_token') } catch { return null } })()
+        if (token) {
+          const addr = editingAgent.address || editingAgent.id || editingAgent.name
+          const formatted = formatPythonCode(code)
+          const agentversePayload = [{ language: 'python', name: 'agent.py', value: formatted }]
+          const agentverseRes = await fetch(`https://agentverse.ai/v1/hosting/agents/${encodeURIComponent(addr)}/code`, { 
+            method: 'PUT', 
+            headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }, 
+            body: JSON.stringify(agentversePayload) 
+          })
+          if (agentverseRes.ok) {
+            setEditStatus(`Saved to project and Agentverse: agents/${file} • domain: ${domain}`)
+          } else {
+            setEditStatus(`Saved to project: agents/${file} • domain: ${domain} (Agentverse save failed)`)
+          }
+        } else {
+          setEditStatus(`Saved to project: agents/${file} • domain: ${domain} (No Agentverse token)`)
+        }
+      } catch (agentverseError) {
+        setEditStatus(`Saved to project: agents/${file} • domain: ${domain} (Agentverse error: ${agentverseError})`)
+      }
+      
+      // auto-run after save
+      const relFile = `agents/${file}`
+      setRunFile(relFile)
+      await startRun(relFile)
+      
+      // Update the agent in state if it exists
+      setImportedAgents(prev => prev.map(a => 
+        a.file === `agents/${file}` ? { ...a, speciality, domain } : a
+      ))
+    } catch (e) {
+      setEditStatus('Save error: ' + String(e))
+    }
+  }
+
+  async function startRun(file) {
+    try {
+      setRunRunning(true)
+      setRunLogs([])
+      // stop any existing polling
+      if (logPollRef.current) { clearInterval(logPollRef.current); logPollRef.current = null }
+      const res = await fetch('http://localhost:5002/api/run-agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ file }) })
+      const j = await res.json().catch(() => ({}))
+      if (!res.ok) { setEditStatus('Run failed: ' + (j?.error || res.status)); setRunRunning(false); return }
+      // start polling logs
+      logPollRef.current = setInterval(async () => {
+        try {
+          const lr = await fetch(`http://localhost:5002/api/agent-logs?file=${encodeURIComponent(file)}`)
+          const lj = await lr.json()
+          if (Array.isArray(lj.logs)) setRunLogs(lj.logs)
+          setRunRunning(Boolean(lj.running))
+        } catch (e) { console.error('Log fetch failed:', e) }
+      }, 1500)
+    } catch (e) {
+      setEditStatus('Run error: ' + String(e))
+      setRunRunning(false)
+    }
+  }
+
+  async function stopRun() {
+    try {
+      if (!runFile) return
+      await fetch('http://localhost:5002/api/stop-agent', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ file: runFile }) })
+    } finally {
+      if (logPollRef.current) { clearInterval(logPollRef.current); logPollRef.current = null }
+      setRunRunning(false)
+    }
+  }
+
+  // Fetch imported agents for current wallet
+  async function fetchImportedAgents() {
+    try {
+      if (!address) return
+      const res = await fetch(`http://localhost:5002/api/imported-agents?wallet=${address}`)
+      if (res.ok) {
+        const data = await res.json()
+        setImportedAgents(data.agents || [])
+      }
+    } catch (e) {
+      console.error('Failed to fetch imported agents:', e)
+    }
+  }
+
+  // Import agent with code fetch and run
+  async function importAgent(agent) {
+    try {
+      setEditStatus(null)
+      setEditCodeText('')
+      setEditingAgent(agent)
+      setShowSplitView(true)
+      
+      const token = (() => { try { return localStorage.getItem('agentverse_token') } catch { return null } })()
+      if (!token) { setEditStatus('No Agentverse token saved — click the key icon to save it.'); return }
+      
+      const addr = agent.address || agent.id || agent.agent_id || agent.name
+      if (!addr) { setEditStatus('Could not determine agent address/id to fetch code'); return }
+      
+      // Check if agent is already imported
+      const agentId = String(agent.name || agent.id || agent.address || 'agent').toLowerCase().replace(/\s+/g, '-')
+      const alreadyImported = importedAgents.some(a => a.agent_id === agentId || a.address === addr)
+      if (alreadyImported) {
+        setEditStatus('⚠️ This agent is already imported!')
+        alert('This agent has already been imported to your dashboard.')
+        return
+      }
+      
+      // Show loader
+      setIsImporting(true)
+      setImportMessage('Fetching code from Agentverse...')
+      setEditStatus('Fetching code from Agentverse...')
+      
+      // Fetch code from Agentverse
+      const res = await fetch(`https://agentverse.ai/v1/hosting/agents/${encodeURIComponent(addr)}/code`, { 
+        headers: { Authorization: `Bearer ${token}` } 
+      })
+      const j = await res.json()
+      if (!res.ok) { setEditStatus('Failed to fetch code: ' + (j?.error || j?.message || JSON.stringify(j))); return }
+      
+      const extracted = jsonToPython(j) || ''
+      const formatted = formatPythonCode(extracted)
+      setEditCodeText(formatted)
+      
+      // Auto-save to project
+      const defaultDomain = (agent.domain || selectedDomain || '').trim()
+      const domain = window.prompt('Enter domain for this agent', defaultDomain || 'financial')
+      if (domain === null) return
+      
+      const speciality = window.prompt("What's this agent's speciality? (e.g., portfolio advice)", '') || ''
+      const name = agent.name || agent.id || agent.address || 'agent'
+      const agentAddress = agent.address || agent.id || ''
+      const agent_id = String(name).toLowerCase().replace(/\s+/g, '-')
+      const file = `${agent_id}.py`
+      
+      // Include wallet address for tracking
+      const payload = { 
+        domain, 
+        speciality, 
+        agent: { agent_id, name, address: agentAddress, status: 'active', wallet: address }, 
+        file, 
+        code: formatted 
+      }
+      
+      setImportMessage('Importing agent to project...')
+      setEditStatus('Importing agent...')
+      
+      // Save to project
+      const saveRes = await fetch('http://localhost:5002/api/save-agent-project', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      })
+      const saveJ = await saveRes.json().catch(() => ({}))
+      if (!saveRes.ok) { 
+        setIsImporting(false)
+        setEditStatus('Import failed: ' + (saveJ?.error || saveRes.status))
+        return 
+      }
+      
+      // Per-agent blockchain connection is handled via the Connect button on each agent card
+      
+      setImportMessage('Starting agent...')
+      setEditStatus(`Agent imported: agents/${file} • domain: ${domain}`)
+      
+      // Add the new agent to state immediately (no reload needed)
+      const newAgent = {
+        agent_id,
+        name,
+        address: agentAddress,
+        status: 'active',
+        speciality,
+        domain,
+        file: `agents/${file}`,
+        wallet: address,
+        imported_at: new Date().toISOString(),
+        connected: false
+      }
+      setImportedAgents(prev => [...prev, newAgent])
+      
+      // auto-run after import
+      const relFile = `agents/${file}`
+      setRunFile(relFile)
+      await startRun(relFile)
+      
+      // Hide loader
+      setIsImporting(false)
+      setImportMessage('')
+      
+    } catch (err) { 
+      setIsImporting(false)
+      setImportMessage('')
+      setEditStatus('Import failed: ' + String(err)) 
+    }
+  }
+
+  // Per-agent connect action: writes to contract and updates backend JSON
+  async function connectAgent(a) {
+    try {
+      setConnectingMap(m => ({ ...m, [a.agent_id]: true }))
+      setIsImporting(true)
+      setImportMessage(`Connecting ${a.name} to network...`)
+      
+      // Call contract to register agent
+      await writeContract({
+        address: AGENT_REGISTRY_ADDRESS,
+        abi: AGENT_REGISTRY_ABI,
+        functionName: 'registerAgent',
+        args: [a.agent_id, a.name || a.agent_id, a.address || '', a.speciality || '', a.domain || '']
+      })
+
+      setImportMessage('Updating registry...')
+      
+      // Update JSON connected=true
+      await fetch('http://localhost:5002/api/update-agent-connection', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ agent_id: a.agent_id, connected: true, wallet: address })
+      })
+
+      // Update local state immediately (no reload needed)
+      setImportedAgents(prev => prev.map(ag => ag.agent_id === a.agent_id ? { ...ag, connected: true } : ag))
+      
+      // Trigger Teela to reload agents registry
+      try {
+        await fetch('http://localhost:8010/reload')
+        console.log('Teela agents registry reloaded')
+      } catch (reloadErr) {
+        console.error('Failed to reload Teela agents:', reloadErr)
+      }
+      
+      setEditStatus(`Agent ${a.agent_id} connected to network`)
+      setIsImporting(false)
+      setImportMessage('')
+    } catch (err) {
+      console.error('Connect agent failed:', err)
+      setEditStatus('Failed to connect agent to network')
+      setIsImporting(false)
+      setImportMessage('')
+    } finally {
+      setConnectingMap(m => ({ ...m, [a.agent_id]: false }))
+    }
+  }
+
   useEffect(() => {
     if (isConnected && address) {
-      fetchStats()
+      fetchImportedAgents()
     }
     // always try agentverse on mount, independent of wallet
     fetchAgentverseAgents()
@@ -175,113 +465,109 @@ export default function OwnerDashboard() {
     }
   }
 
-  async function fetchStats() {
-    try {
-      setLoading(true)
-      const res = await fetch(`/api/agent-owner-stats?owner=${address}`)
-      if (!res.ok) throw new Error('failed')
-      const data = await res.json()
-      setAgents(data.agents || [])
-    } catch (e) {
-      console.error(e)
-      setAgents([])
-    } finally {
-      setLoading(false)
-    }
-  }
 
-  async function triggerScore(agentId) {
-    try {
-      const res = await fetch('/api/agent-score', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ agent: agentId })
-      })
-      if (!res.ok) throw new Error('score failed')
-      const data = await res.json()
-      alert('Score updated: ' + JSON.stringify(data))
-      fetchStats()
-    } catch (e) {
-      console.error(e)
-      alert('Failed to trigger score')
-    }
-  }
-
-  // Mock earnings data
-  const totalEarnings = agents.reduce((sum, a) => sum + (a.rentCount * 0.01), 0)
-  const totalChats = agents.reduce((sum, a) => sum + a.chatCount, 0)
-  const avgScore = agents.length > 0 ? agents.reduce((sum, a) => sum + (a.score || 0), 0) / agents.length : 0
 
   return (
-    <div className="glass card" style={{ padding: 0 }}>
+    <>
+      {/* Show loader overlay when importing/connecting */}
+      {isImporting && <BanterLoader message={importMessage} />}
+      
       <div style={{ padding: 24 }}>
-        <div className="section-title" style={{ textAlign: 'center' }}>Owner Dashboard</div>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '0 0 12px' }}>
+          <div className="sidebar-image">
+            <TiltedCard
+              imageSrc="/images/owner.avif"
+              altText="Owner Dashboard"
+              captionText="Owner Dashboard"
+              containerHeight="180px"
+              containerWidth="100%"
+              imageHeight="180px"
+              imageWidth="100%"
+              rotateAmplitude={12}
+              scaleOnHover={1.08}
+              showMobileWarning={false}
+            />
+          </div>
+        </div>
         <>
-            {/* Metrics Grid */}
-            <div className="metrics-grid">
-              <div className="glass metric-card">
-                <div className="earnings-meter">
-                  <div className="meter-circle">
-                    <div className="meter-value">{totalEarnings.toFixed(3)}</div>
-                  </div>
-                </div>
-                <div className="metric-label">Total Earnings (ETH)</div>
-              </div>
-              
-              <div className="glass metric-card">
-                <div className="metric-value">{agents.length}</div>
-                <div className="metric-label">Active Agents</div>
-              </div>
-              
-              <div className="glass metric-card">
-                <div className="metric-value">{totalChats}</div>
-                <div className="metric-label">Total Chats</div>
-              </div>
-              
-              <div className="glass metric-card">
-                <div className="metric-value">{avgScore.toFixed(1)}</div>
-                <div className="metric-label">Avg Score</div>
-              </div>
-            </div>
-
-            {/* Local Agents */}
-            {loading && <p className="muted" style={{ textAlign: 'center' }}>Loading local agents...</p>}
-            
-            {agents.length > 0 && (
+            {/* Imported Agents Section */}
+            {importedAgents.length > 0 && (
               <>
-                <div className="section-title" style={{ fontSize: 20, marginBottom: 16 }}>Local Agents</div>
+                <div className="section-title" style={{ fontSize: 20, marginBottom: 16 }}>Imported Agents</div>
                 <div className="agent-cards">
-                  {agents.map((a) => (
-                    <div key={a.agentId} className="glass agent-card">
+                  {importedAgents.map((a, idx) => (
+                    <div key={a.agent_id || idx} className="glass colorful agent-card">
                       <h3>
-                        <span>{a.agentId}</span>
+                        <span>{a.name}</span>
                         <small className="muted">{a.domain}</small>
                       </h3>
-                      <p className="muted">{a.description}</p>
+                      <p className="muted">{a.speciality || 'No description'}</p>
                       
                       <div className="agent-stats">
                         <div className="agent-stat">
-                          <div className="agent-stat-value">{a.score || 0}</div>
-                          <div className="agent-stat-label">Score</div>
+                          <div className="agent-stat-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <span>{a.status}</span>
+                            <div style={{ 
+                              width: 8, height: 8, borderRadius: '50%',
+                              backgroundColor: a.connected ? '#00ff00' : '#666',
+                              boxShadow: a.connected ? '0 0 8px #00ff00' : 'none'
+                            }}></div>
+                            <button 
+                              className={`btn ${a.connected ? 'success' : 'primary'}`} 
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                if (!a.connected) connectAgent(a)
+                              }}
+                              disabled={a.connected || !!connectingMap[a.agent_id]}
+                              style={{ fontSize: 12, padding: '4px 8px' }}
+                            >
+                              {a.connected ? 'Connected' : (connectingMap[a.agent_id] ? 'Connecting...' : 'Connect to Network')}
+                            </button>
+                          </div>
+                          <div className="agent-stat-label">Status</div>
                         </div>
                         <div className="agent-stat">
-                          <div className="agent-stat-value">{a.rentCount}</div>
-                          <div className="agent-stat-label">Rents</div>
+                          <div className="agent-stat-value">{a.address ? a.address.slice(0, 8) + '...' : '-'}</div>
+                          <div className="agent-stat-label">Address</div>
                         </div>
                         <div className="agent-stat">
-                          <div className="agent-stat-value">{a.chatCount}</div>
-                          <div className="agent-stat-label">Chats</div>
+                          <div className="agent-stat-value">{a.file ? a.file.split('/').pop() : '-'}</div>
+                          <div className="agent-stat-label">File</div>
                         </div>
                       </div>
                       
                       <div className="actions">
-                        <button className="btn primary" onClick={() => triggerScore(a.agentId)}>Run Scoring</button>
+                        <button className="btn primary" onClick={(e) => {
+                          e.stopPropagation()
+                          const relFile = a.file
+                          setRunFile(relFile)
+                          startRun(relFile)
+                        }}>Run Agent</button>
                       </div>
                     </div>
                   ))}
                 </div>
+                <div style={{ marginBottom: 32 }}></div>
               </>
             )}
+
+            {/* Metrics Grid - Using imported agents */}
+            <div className="metrics-grid">
+              <div className="glass colorful metric-card">
+                <div className="metric-value">{importedAgents.filter(a => a.connected).length}</div>
+                <div className="metric-label">Connected Agents</div>
+              </div>
+              
+              <div className="glass colorful metric-card">
+                <div className="metric-value">{importedAgents.length}</div>
+                <div className="metric-label">Total Agents</div>
+              </div>
+              
+              <div className="glass colorful metric-card">
+                <div className="metric-value">{agentverseAgents.length}</div>
+                <div className="metric-label">Agentverse Agents</div>
+              </div>
+            </div>
 
             {/* Agentverse Agents */}
             {agentverseLoading && <p className="muted" style={{ textAlign: 'center' }}>Loading Agentverse agents...</p>}
@@ -291,7 +577,7 @@ export default function OwnerDashboard() {
                 <div className="section-title" style={{ fontSize: 20, marginBottom: 16, marginTop: 32 }}>Agentverse Agents</div>
                 <div className="agent-cards">
                   {agentverseAgents.map((a, idx) => (
-                    <div key={a.id || a.address || idx} className="glass agent-card">
+                    <div key={a.id || a.address || idx} className="glass colorful agent-card">
                       <h3>
                         <span>{a.name || a.id}</span>
                         <small className="muted">{a.domain || 'unknown'}</small>
@@ -314,7 +600,16 @@ export default function OwnerDashboard() {
                       </div>
 
                       <div className="actions">
-                        <button className="btn" onClick={() => { setConnectingAgent(a); setSelectedDomain(a.domain || '') }}>Import</button>
+                        {(() => {
+                          const agentId = String(a.name || a.id || a.address || 'agent').toLowerCase().replace(/\s+/g, '-')
+                          const addr = a.address || a.id || a.agent_id || a.name
+                          const isImported = importedAgents.some(ia => ia.agent_id === agentId || ia.address === addr)
+                          return isImported ? (
+                            <button className="btn success" disabled style={{ cursor: 'not-allowed' }}>✓ Imported</button>
+                          ) : (
+                            <button className="btn" onClick={(e) => { e.stopPropagation(); importAgent(a) }}>Import</button>
+                          )
+                        })()}
                         <button className="btn primary" onClick={async () => {
                           setEditStatus(null)
                           setEditCodeText('')
@@ -336,7 +631,7 @@ export default function OwnerDashboard() {
                       </div>
 
                       {connectingAgent && (connectingAgent.address || connectingAgent.id) === (a.address || a.id) && (
-                        <div className="glass card" style={{ marginTop: 12 }}>
+                        <div className="glass colorful card" style={{ marginTop: 12 }}>
                           <div className="actions" style={{ alignItems: 'center' }}>
                             <label style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                               <span className="muted">Domain</span>
@@ -371,16 +666,16 @@ export default function OwnerDashboard() {
               </>
             )}
             
-            {!agentverseLoading && agentverseAgents.length === 0 && !loading && agents.length === 0 && (
-              <div className="glass card">
+            {!agentverseLoading && agentverseAgents.length === 0 && importedAgents.length === 0 && (
+              <div className="glass colorful card">
                 <p style={{ margin: 0, textAlign: 'center' }}>No agents found. Upload your first agent to get started!</p>
               </div>
             )}
 
             {/* Full-screen Modal Editor for Agentverse agent code */}
             {editingAgent && (
-              <div className="modal-overlay" onClick={() => { setEditingAgent(null); setEditCodeText(''); setEditStatus(null); setShowSplitView(false) }}>
-                <div className="glass modal-content" onClick={(e) => e.stopPropagation()}>
+              <div className="modal-overlay" onClick={() => { setEditingAgent(null); setEditCodeText(''); setEditStatus(null); setShowSplitView(false); if (logPollRef.current) { clearInterval(logPollRef.current); logPollRef.current = null } }}>
+                <div className="glass colorful modal-content" onClick={(e) => e.stopPropagation()}>
                   <div className="modal-header">
                     <div className="section-title" style={{ fontSize: 18, margin: 0 }}>Editing: {editingAgent.name} ({editingAgent.address || editingAgent.id || editingAgent.name})</div>
                     <div className="actions">
@@ -392,7 +687,7 @@ export default function OwnerDashboard() {
                         setEditCodeText(formatted)
                         setEditStatus('Code formatted')
                       }}>Format</button>
-                      <button className="btn" onClick={() => { setEditingAgent(null); setEditCodeText(''); setEditStatus(null); setShowSplitView(false) }}>Close</button>
+                      <button className="btn" onClick={(e) => { e.stopPropagation(); setEditingAgent(null); setEditCodeText(''); setEditStatus(null); setShowSplitView(false) }}>Close</button>
                     </div>
                   </div>
                   <div className="modal-body">
@@ -441,13 +736,31 @@ export default function OwnerDashboard() {
                         } catch (err) { setEditStatus('Save failed: ' + String(err)) }
                         finally { setEditSaving(false) }
                       }} disabled={editSaving}>{editSaving ? 'Saving...' : 'Save to Agentverse'}</button>
+                      <button className="btn" onClick={(e) => { e.stopPropagation(); saveToProject() }}>Save & Run</button>
+                      {runFile && (
+                        <>
+                          <button className="btn" onClick={(e) => { e.stopPropagation(); startRun(runFile) }} disabled={runRunning}>Run</button>
+                          <button className="btn" onClick={(e) => { e.stopPropagation(); stopRun() }} disabled={!runRunning}>Stop</button>
+                        </>
+                      )}
                     </div>
                   </div>
+                  {runFile && (
+                    <div className="glass colorful card" style={{ marginTop: 12 }}>
+                      <div className="section-title" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span>Live Logs {runRunning ? '(running...)' : '(stopped)'} — {runFile}</span>
+                        <div className="actions">
+                          <button className="btn" onClick={(e) => { e.stopPropagation(); setRunLogs([]) }}>Clear</button>
+                        </div>
+                      </div>
+                      <pre style={{ maxHeight: 280, overflow: 'auto', background: 'rgba(0,0,0,0.35)', padding: 12, borderRadius: 8, whiteSpace: 'pre-wrap' }}>{(runLogs || []).join('')}</pre>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
         </>
       </div>
-    </div>
+    </>
   )
 }

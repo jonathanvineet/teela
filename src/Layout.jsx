@@ -3,7 +3,7 @@ import Particles from './Particles'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react'
 
-export default function Layout({ children, currentView, onNavigate }) {
+export default function Layout({ children, currentView, onNavigate, onBack, canGoBack }) {
   const [showApiPanel, setShowApiPanel] = useState(false)
   const [apiKey, setApiKey] = useState(() => {
     try { return localStorage.getItem('agentverse_token') || '' } catch { return '' }
@@ -22,6 +22,7 @@ export default function Layout({ children, currentView, onNavigate }) {
   const navItems = [
     { id: 'home', label: 'Home' },
     { id: 'agents', label: 'Agents' },
+    { id: 'teela', label: 'Teela' },
     { id: 'upload', label: 'Upload Agent' },
     { id: 'owner', label: 'Owner Dashboard' },
   ]
@@ -49,6 +50,22 @@ export default function Layout({ children, currentView, onNavigate }) {
           <div className="brand">
             <div className="brand-name">TEELA</div>
           </div>
+          
+          {canGoBack && (
+            <button 
+              className="btn back-btn" 
+              onClick={onBack}
+              style={{ 
+                marginRight: 12,
+                display: 'flex',
+                alignItems: 'center',
+                gap: 6,
+                padding: '8px 16px'
+              }}
+            >
+              <span style={{ fontSize: 16 }}>←</span> Back
+            </button>
+          )}
           
           <div className="nav">
             {navItems.map((item) => (

@@ -1,0 +1,19 @@
+{
+  "domain": {
+    "financial": {
+      "agents": [
+        {
+          "agent_id": "adv-financial-agent",
+          "name": "Adv-financial-agent",
+          "address": "agent1qgv43hgx4qvppqlpuq6ld5h5pesgs0jkd6na774jp245f2swcc9jk6nywzn",
+          "status": "active",
+          "speciality": "",
+          "file": "agents/adv-financial-agent.py",
+          "wallet": "0x670298e73c5E6735E1fdBeD858Be1d6A26db00b1",
+          "imported_at": "2025-10-25T17:31:06.085Z",
+          "connected": true
+        }
+      ]
+    }
+  }
+}
