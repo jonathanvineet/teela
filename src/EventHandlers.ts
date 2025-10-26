@@ -1,4 +1,4 @@
-const { AgentScoring } = require("generated");
+import { AgentScoring } from "generated";
 
 AgentScoring.EscrowUpdated.handler(async ({ event, context }) => {
   const entity = {
