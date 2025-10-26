@@ -11,4 +11,3 @@ networks:
         events:
           - event: ScoreRecorded(string agentId, uint256 score, uint256 revenue)
           - event: EscrowUpdated(address newEscrow)
-        abi_file_path: contracts/AgentScoring.abi.json
