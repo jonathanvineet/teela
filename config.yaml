@@ -1,5 +1,6 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
 name: teela-agent-scoring
+description: TEELA Agent Scoring Indexer
 networks:
 - id: 11155111
   start_block: 9493100
