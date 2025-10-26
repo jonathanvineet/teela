@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
-import { useAccount, useWriteContract } from 'wagmi'
+import { useAccount, useWriteContract, useReadContract, usePublicClient } from 'wagmi'
 import TiltedCard from './TiltedCard'
 import BanterLoader from './BanterLoader'
 import { AGENT_REGISTRY_ADDRESS, AGENT_REGISTRY_ABI } from './contracts/AgentRegistry'
+import { AGENT_SCORING_ADDRESS, AGENT_SCORING_ABI } from './contracts/AgentScoring'
 
 export default function OwnerDashboard() {
   const { address, isConnected } = useAccount()
@@ -27,6 +28,103 @@ export default function OwnerDashboard() {
   const [connectingMap, setConnectingMap] = useState({})
   const [isImporting, setIsImporting] = useState(false)
   const [importMessage, setImportMessage] = useState('')
+  const [agentScores, setAgentScores] = useState({})
+  const [loadingScores, setLoadingScores] = useState(false)
+  const publicClient = usePublicClient()
+
+  // Fetch agent scores from Envio GraphQL
+  useEffect(() => {
+    async function fetchScores() {
+      if (!importedAgents.length) return
+      
+      setLoadingScores(true)
+      try {
+        // Use Envio GraphQL endpoint
+        const ENVIO_URL = process.env.VITE_ENVIO_URL || 'http://localhost:8080/v1/graphql'
+        
+        const query = `
+          query GetAgents {
+            Agent {
+              id
+              agentId
+              totalScore
+              sessionCount
+              averageScore
+              totalRevenue
+              lastUpdated
+            }
+          }
+        `
+        
+        const response = await fetch(ENVIO_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query })
+        })
+        
+        const { data, errors } = await response.json()
+        
+        if (errors) {
+          console.error('GraphQL errors:', errors)
+          // Fallback to direct contract calls
+          await fetchScoresFromContract()
+          return
+        }
+        
+        if (data && data.Agent) {
+          const scores = {}
+          data.Agent.forEach(agent => {
+            scores[agent.agentId] = {
+              totalScore: agent.totalScore,
+              sessionCount: agent.sessionCount,
+              averageScore: agent.averageScore,
+              totalRevenue: agent.totalRevenue
+            }
+          })
+          setAgentScores(scores)
+          console.log('✅ Loaded scores from Envio:', Object.keys(scores).length, 'agents')
+        }
+      } catch (error) {
+        console.error('Error fetching from Envio:', error)
+        // Fallback to direct contract calls
+        await fetchScoresFromContract()
+      } finally {
+        setLoadingScores(false)
+      }
+    }
+    
+    // Fallback: Direct contract calls if Envio fails
+    async function fetchScoresFromContract() {
+      if (!publicClient) return
+      
+      console.log('⚠️ Falling back to direct contract calls')
+      const scores = {}
+      
+      for (const agent of importedAgents) {
+        try {
+          const result = await publicClient.readContract({
+            address: AGENT_SCORING_ADDRESS,
+            abi: AGENT_SCORING_ABI,
+            functionName: 'getAgentScore',
+            args: [agent.agent_id]
+          })
+          
+          scores[agent.agent_id] = {
+            totalScore: result[0],
+            sessionCount: result[1],
+            averageScore: result[2],
+            totalRevenue: result[3]
+          }
+        } catch (err) {
+          console.error(`Failed to fetch score for ${agent.agent_id}:`, err)
+        }
+      }
+      
+      setAgentScores(scores)
+    }
+    
+    fetchScores()
+  }, [importedAgents, publicClient])
 
   // Close modal on Escape
   useEffect(() => {
@@ -230,11 +328,13 @@ export default function OwnerDashboard() {
       if (res.ok) {
         const data = await res.json()
         setImportedAgents(data.agents || [])
+        // Scores will be fetched automatically by useEffect when importedAgents changes
       }
     } catch (e) {
       console.error('Failed to fetch imported agents:', e)
     }
   }
+
 
   // Import agent with code fetch and run
   async function importAgent(agent) {
@@ -489,29 +589,118 @@ export default function OwnerDashboard() {
             />
           </div>
         </div>
-        <>
-            {/* Imported Agents Section */}
+            {/* Imported Agents Section with Performance Scores */}
             {importedAgents.length > 0 && (
               <>
                 <div className="section-title" style={{ fontSize: 20, marginBottom: 16 }}>Imported Agents</div>
                 <div className="agent-cards">
-                  {importedAgents.map((a, idx) => (
-                    <div key={a.agent_id || idx} className="glass colorful agent-card">
-                      <h3>
-                        <span>{a.name}</span>
-                        <small className="muted">{a.domain}</small>
-                      </h3>
-                      <p className="muted">{a.speciality || 'No description'}</p>
-                      
+                  {importedAgents.map((a, idx) => {
+                    const score = agentScores[a.agent_id] || null
+                    const formatEth = (wei) => wei ? (Number(wei) / 1e18).toFixed(6) : '0'
+                    
+                    return (
+                    <div key={a.agent_id || idx} className="glass colorful agent-card" style={{ minHeight: 320 }}>
+                      {/* Header */}
+                      <div style={{ marginBottom: 16 }}>
+                        <h3 style={{ margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span>{a.name}</span>
+                          <div style={{ 
+                            width: 8, height: 8, borderRadius: '50%',
+                            backgroundColor: a.connected ? '#00ff00' : '#666',
+                            boxShadow: a.connected ? '0 0 8px #00ff00' : 'none'
+                          }}></div>
+                        </h3>
+                        <small className="muted">{a.domain} • {a.speciality || 'No speciality'}</small>
+                        <div style={{ fontSize: 10, color: 'rgba(255,255,255,0.4)', marginTop: 4, wordBreak: 'break-all' }}>
+                          ID: {a.agent_id}
+                        </div>
+                      </div>
+
+                      {/* Performance Scores */}
+                      {loadingScores ? (
+                        <div style={{ 
+                          padding: 20, 
+                          textAlign: 'center', 
+                          color: 'rgba(255,255,255,0.6)',
+                          background: 'rgba(0,0,0,0.2)',
+                          borderRadius: 8,
+                          marginBottom: 12
+                        }}>
+                          Loading scores...
+                        </div>
+                      ) : score ? (
+                        <div style={{ 
+                          background: 'rgba(0, 212, 255, 0.1)',
+                          border: '1px solid rgba(0, 212, 255, 0.3)',
+                          borderRadius: 12,
+                          padding: 16,
+                          marginBottom: 12
+                        }}>
+                          <div style={{ 
+                            display: 'grid', 
+                            gridTemplateColumns: 'repeat(2, 1fr)',
+                            gap: 16
+                          }}>
+                            {/* Average Score */}
+                            <div>
+                              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                                Avg Score
+                              </div>
+                              <div style={{ fontSize: 28, fontWeight: 700, color: '#00d4ff' }}>
+                                {score.averageScore?.toString() || '0'}
+                              </div>
+                            </div>
+
+                            {/* Total Score */}
+                            <div>
+                              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                                Total Score
+                              </div>
+                              <div style={{ fontSize: 28, fontWeight: 700, color: '#a78bfa' }}>
+                                {score.totalScore?.toString() || '0'}
+                              </div>
+                            </div>
+
+                            {/* Sessions */}
+                            <div>
+                              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                                Sessions
+                              </div>
+                              <div style={{ fontSize: 20, fontWeight: 600, color: '#51cf66' }}>
+                                {score.sessionCount?.toString() || '0'}
+                              </div>
+                            </div>
+
+                            {/* Revenue */}
+                            <div>
+                              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                                Revenue
+                              </div>
+                              <div style={{ fontSize: 16, fontWeight: 600, color: '#ffd700' }}>
+                                {formatEth(score.totalRevenue)} ETH
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <div style={{ 
+                          padding: 16, 
+                          textAlign: 'center', 
+                          color: 'rgba(255,255,255,0.5)',
+                          background: 'rgba(0,0,0,0.2)',
+                          borderRadius: 8,
+                          marginBottom: 12,
+                          fontSize: 14
+                        }}>
+                          No performance data yet
+                        </div>
+                      )}
+
+                      {/* Agent Info */}
                       <div className="agent-stats">
                         <div className="agent-stat">
                           <div className="agent-stat-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                             <span>{a.status}</span>
-                            <div style={{ 
-                              width: 8, height: 8, borderRadius: '50%',
-                              backgroundColor: a.connected ? '#00ff00' : '#666',
-                              boxShadow: a.connected ? '0 0 8px #00ff00' : 'none'
-                            }}></div>
                             <button 
                               className={`btn ${a.connected ? 'success' : 'primary'}`} 
                               onClick={(e) => {
@@ -519,33 +708,20 @@ export default function OwnerDashboard() {
                                 if (!a.connected) connectAgent(a)
                               }}
                               disabled={a.connected || !!connectingMap[a.agent_id]}
-                              style={{ fontSize: 12, padding: '4px 8px' }}
+                              style={{ fontSize: 11, padding: '4px 8px' }}
                             >
-                              {a.connected ? 'Connected' : (connectingMap[a.agent_id] ? 'Connecting...' : 'Connect to Network')}
+                              {a.connected ? '✓ Connected' : (connectingMap[a.agent_id] ? 'Connecting...' : 'Connect')}
                             </button>
                           </div>
                           <div className="agent-stat-label">Status</div>
                         </div>
                         <div className="agent-stat">
-                          <div className="agent-stat-value">{a.address ? a.address.slice(0, 8) + '...' : '-'}</div>
+                          <div className="agent-stat-value">{a.address ? a.address.slice(0, 10) + '...' : '-'}</div>
                           <div className="agent-stat-label">Address</div>
                         </div>
-                        <div className="agent-stat">
-                          <div className="agent-stat-value">{a.file ? a.file.split('/').pop() : '-'}</div>
-                          <div className="agent-stat-label">File</div>
-                        </div>
-                      </div>
-                      
-                      <div className="actions">
-                        <button className="btn primary" onClick={(e) => {
-                          e.stopPropagation()
-                          const relFile = a.file
-                          setRunFile(relFile)
-                          startRun(relFile)
-                        }}>Run Agent</button>
                       </div>
                     </div>
-                  ))}
+                  )})}
                 </div>
                 <div style={{ marginBottom: 32 }}></div>
               </>
@@ -759,7 +935,6 @@ export default function OwnerDashboard() {
                 </div>
               </div>
             )}
-        </>
       </div>
     </>
   )
