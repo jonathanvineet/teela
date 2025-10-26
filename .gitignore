@@ -27,6 +27,7 @@ node_modules/
 frontend/node_modules/
 backend/.venv/
 .env
+.env.deploy
 .env.local
 .env.*.local
 package-lock.json
