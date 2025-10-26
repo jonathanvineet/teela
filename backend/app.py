@@ -1362,5 +1362,148 @@ def distribute_payment():
         app.logger.error(f"Error distributing payment: {e}")
         return jsonify({'success': False, 'error': str(e)}), 500
 
+@app.route('/api/session/end', methods=['POST'])
+def end_session():
+    """
+    End a chat session and distribute payments to agents
+    
+    This endpoint:
+    1. Gets session summary from TEELA (scores sum to 100)
+    2. Reads agent wallet addresses from registry
+    3. Calls escrow contract to distribute payments
+    4. Records scores on AgentScoring contract
+    
+    Expected payload:
+    {
+        "sessionId": 0,  # Escrow session ID
+        "domain": "financial"
+    }
+    """
+    try:
+        data = request.json
+        session_id = data.get('sessionId')
+        domain = data.get('domain')
+        
+        if session_id is None:
+            return jsonify({'success': False, 'error': 'sessionId required'}), 400
+        
+        if not domain:
+            return jsonify({'success': False, 'error': 'domain required'}), 400
+        
+        app.logger.info(f"Ending session {session_id} for domain {domain}")
+        
+        import json
+        import os
+        import sys
+        
+        # Add agents directory to path to import teela
+        agents_path = os.path.join(os.path.dirname(__file__), '..', 'agents')
+        if agents_path not in sys.path:
+            sys.path.insert(0, agents_path)
+        
+        # Try to get TEELA scores first
+        teela_scores = None
+        try:
+            from teela import get_session_scores_for_contract
+            
+            # Construct TEELA session ID (format: "domain_session_escrowId")
+            teela_session_id = f"{domain}_session_{session_id}"
+            
+            # Get scores from TEELA (scores sum to 100)
+            teela_scores = get_session_scores_for_contract(teela_session_id, total_amount_eth=0.001)
+            
+            if teela_scores:
+                app.logger.info(f"✅ Got TEELA scores for session {teela_session_id}")
+                app.logger.info(f"   Total percentage: {teela_scores['total_percentage']}")
+                for agent in teela_scores['agents']:
+                    app.logger.info(f"   • {agent['agent_name']}: {agent['score']}% = {agent['amount']} ETH")
+            else:
+                app.logger.warning(f"⚠️  TEELA session {teela_session_id} not found, using fallback")
+        except Exception as e:
+            app.logger.warning(f"⚠️  Could not get TEELA scores: {e}")
+            app.logger.warning(f"   Falling back to equal distribution")
+        
+        # If we have TEELA scores, use them
+        if teela_scores and teela_scores.get('agents'):
+            agents_data = []
+            for agent in teela_scores['agents']:
+                agents_data.append({
+                    'wallet': agent['wallet'],
+                    'amount': agent['amount'],
+                    'agentId': agent['agent_id'],
+                    'score': int(agent['score'])  # Must be integer for contract
+                })
+            
+            app.logger.info(f"📊 Using TEELA-calculated scores (sum to 100)")
+        
+        else:
+            # Fallback: Equal distribution
+            app.logger.info(f"📊 Using fallback: equal distribution")
+            
+            # Read agents from registry
+            registry_path = os.path.join(os.path.dirname(__file__), '..', 'agents', 'agents_registry.json')
+            if not os.path.exists(registry_path):
+                return jsonify({'success': False, 'error': 'agents_registry.json not found'}), 404
+            
+            with open(registry_path, 'r') as f:
+                registry = json.load(f)
+            
+            # Get agents for this domain
+            agents = []
+            if domain in registry.get('domain', {}):
+                agents = registry['domain'][domain].get('agents', [])
+            
+            if not agents:
+                return jsonify({'success': False, 'error': f'No agents found for domain {domain}'}), 404
+            
+            app.logger.info(f"Found {len(agents)} agents for domain {domain}")
+            
+            # Equal distribution
+            score_per_agent = 100 / len(agents)
+            amount_per_agent = 0.0003
+            
+            agents_data = []
+            for agent in agents:
+                agents_data.append({
+                    'wallet': agent['wallet'],
+                    'amount': str(amount_per_agent),
+                    'agentId': agent['agent_id'],
+                    'score': int(score_per_agent)
+                })
+        
+        app.logger.info(f"Distributing payments: {agents_data}")
+        
+        # Call escrow handler
+        from escrow_handler import get_escrow_handler
+        handler = get_escrow_handler()
+        
+        wallets = [a['wallet'] for a in agents_data]
+        amounts = [a['amount'] for a in agents_data]
+        agent_ids = [a['agentId'] for a in agents_data]
+        scores = [a['score'] for a in agents_data]
+        
+        result = handler.distribute_payment(
+            session_id,
+            wallets,
+            amounts,
+            agent_ids,
+            scores
+        )
+        
+        app.logger.info(f"Payment distributed successfully: {result}")
+        
+        return jsonify({
+            'success': True,
+            'txHash': result.get('txHash'),
+            'agents': agents_data,
+            'message': 'Session ended and payments distributed'
+        })
+        
+    except Exception as e:
+        app.logger.error(f"Error ending session: {e}")
+        import traceback
+        traceback.print_exc()
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)

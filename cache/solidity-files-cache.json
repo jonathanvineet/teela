@@ -1,0 +1,150 @@
+{
+  "_format": "hh-sol-cache-2",
+  "files": {
+    "/Users/vine/elco/teela/contracts/FINAL_AgentEscrow.sol": {
+      "lastModificationDate": 1761459040717,
+      "contentHash": "10dee00fcff25449fcffea5338611fec",
+      "sourceName": "contracts/FINAL_AgentEscrow.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AgentEscrow",
+        "IAgentScoring"
+      ]
+    },
+    "/Users/vine/elco/teela/contracts/FINAL_AgentScoring.sol": {
+      "lastModificationDate": 1761459005316,
+      "contentHash": "798b407eab0af779dca9c5906c5bf77e",
+      "sourceName": "contracts/FINAL_AgentScoring.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AgentScoring"
+      ]
+    },
+    "/Users/vine/elco/teela/contracts/contracts/AgentRegistry.sol": {
+      "lastModificationDate": 1761398369750,
+      "contentHash": "d2a89cd0b7412b1a8f631bc659dab5ea",
+      "sourceName": "contracts/contracts/AgentRegistry.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.19"
+      ],
+      "artifacts": [
+        "AgentRegistry"
+      ]
+    },
+    "/Users/vine/elco/teela/contracts/AgentScoring_V2.sol": {
+      "lastModificationDate": 1761468008116,
+      "contentHash": "e74f0ef2df30ee1d7b53f8142e3228db",
+      "sourceName": "contracts/AgentScoring_V2.sol",
+      "solcConfig": {
+        "version": "0.8.20",
+        "settings": {
+          "optimizer": {
+            "enabled": true,
+            "runs": 200
+          },
+          "evmVersion": "paris",
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.20"
+      ],
+      "artifacts": [
+        "AgentScoring"
+      ]
+    }
+  }
+}

@@ -1438,3 +1438,91 @@ if __name__ == "__main__":
     
     print(f"⏳ Ready...\n")
     teela.run()
+
+
+# ============================================================================
+# HELPER FUNCTIONS FOR BACKEND INTEGRATION
+# ============================================================================
+
+def get_session_scores_for_contract(session_id: str, total_amount_eth: float = 0.001):
+    """
+    Get session scores formatted for escrow contract
+    
+    This function is called by the backend when ending a session.
+    It returns agent scores that sum to 100 and payment amounts.
+    
+    Args:
+        session_id: Session identifier (e.g., "financial_session_123")
+        total_amount_eth: Total ETH to distribute (default 0.001)
+    
+    Returns:
+        {
+            'session_id': str,
+            'total_percentage': 100,
+            'agents': [
+                {
+                    'wallet': '0x...',
+                    'amount': '0.0003',
+                    'agent_id': 'savings',
+                    'agent_name': 'Savings Agent',
+                    'score': 35  # Out of 100
+                }
+            ]
+        }
+    """
+    global session_tracker
+    
+    # Check if session exists in tracker
+    if session_id not in session_tracker.sessions:
+        print(f"⚠️  Session {session_id} not found in tracker")
+        # Return None to indicate we should fall back to equal distribution
+        return None
+    
+    # Get contract-ready data from tracker
+    contract_data = session_tracker.prepare_for_contract(session_id, total_amount_eth)
+    
+    if not contract_data:
+        print(f"⚠️  No contract data for session {session_id}")
+        return None
+    
+    print(f"✅ Retrieved scores for session {session_id}:")
+    print(f"   Total percentage: {contract_data['total_percentage']}")
+    for agent in contract_data['agents']:
+        print(f"   • {agent['agent_name']}: {agent['score']}% = {agent['amount']} ETH")
+    
+    return contract_data
+
+
+def record_agent_usage_for_session(session_id: str, agent_id: str, agent_name: str, 
+                                   agent_address: str, score: float, response_quality: float):
+    """
+    Record agent usage during a session
+    
+    Called by the chat interface when an agent responds.
+    
+    Args:
+        session_id: Session identifier
+        agent_id: Agent ID (e.g., "savings")
+        agent_name: Agent display name
+        agent_address: Agent wallet address
+        score: Agent score for this response (0-100)
+        response_quality: Quality metric (0-1)
+    """
+    global session_tracker
+    session_tracker.record_agent_usage(
+        session_id, agent_id, agent_name, agent_address, score, response_quality
+    )
+
+
+def start_new_session(session_id: str):
+    """
+    Initialize a new session for tracking
+    
+    Called when a user starts a new rental session.
+    
+    Args:
+        session_id: Unique session identifier
+    """
+    global session_tracker
+    session_tracker.start_session(session_id)
+    print(f"📊 Started tracking session: {session_id}")

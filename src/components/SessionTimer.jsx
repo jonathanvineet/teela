@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import TimerIcon from './TimerIcon';
 
-export function SessionTimer({ session, onExpire }) {
+export function SessionTimer({ session, onExpire, onEndSession }) {
   const [timeLeft, setTimeLeft] = useState(null);
   const [isExpired, setIsExpired] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isEnding, setIsEnding] = useState(false);
+  const [endingError, setEndingError] = useState(null);
 
   useEffect(() => {
     if (!session || !session.startTime) return;
@@ -18,6 +20,8 @@ export function SessionTimer({ session, onExpire }) {
       if (remaining <= 0) {
         setIsExpired(true);
         setTimeLeft(0);
+        // Auto-end session when timer hits zero
+        handleAutoEndSession();
         if (onExpire) onExpire();
         return 0;
       }
@@ -37,6 +41,61 @@ export function SessionTimer({ session, onExpire }) {
 
     return () => clearInterval(interval);
   }, [session, onExpire]);
+
+  const handleAutoEndSession = async () => {
+    // Automatically called when timer hits zero
+    console.log('⏰ Timer expired - auto-ending session');
+    await handleEndSession(true);
+  };
+
+  const handleEndSession = async (isAuto = false) => {
+    if (isEnding) return;
+    
+    setIsEnding(true);
+    setEndingError(null);
+
+    try {
+      console.log(`${isAuto ? '⏰ Auto-ending' : '🛑 Manually ending'} session ${session.sessionId}`);
+
+      // Call backend to end session and distribute payments
+      const response = await fetch('http://localhost:5001/api/session/end', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId: session.sessionId,
+          domain: session.domain
+        })
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Failed to end session');
+      }
+
+      console.log('✅ Session ended successfully:', data);
+      
+      // Call parent callback
+      if (onEndSession) {
+        onEndSession(data);
+      }
+
+      // Close expanded view
+      setIsExpanded(false);
+
+    } catch (error) {
+      console.error('❌ Error ending session:', error);
+      setEndingError(error.message);
+    } finally {
+      setIsEnding(false);
+    }
+  };
+
+  const handleUpgradeSession = () => {
+    // TODO: Implement upgrade session (extend time)
+    console.log('🔄 Upgrade session clicked');
+    alert('Upgrade session feature coming soon!');
+  };
 
   if (!session || timeLeft === null) return null;
 
@@ -245,9 +304,72 @@ export function SessionTimer({ session, onExpire }) {
             </div>
           </div>
 
-          {isExpired && (
+          {/* Action Buttons */}
+          <div style={{ marginTop: 16, display: 'flex', gap: 8 }}>
+            <button
+              onClick={handleUpgradeSession}
+              disabled={isExpired || isEnding}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                background: isExpired ? 'rgba(255, 255, 255, 0.05)' : 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 8,
+                color: isExpired ? '#666' : '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: isExpired || isEnding ? 'not-allowed' : 'pointer',
+                opacity: isExpired || isEnding ? 0.5 : 1,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (!isExpired && !isEnding) {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(102, 126, 234, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              🔄 Upgrade Session
+            </button>
+
+            <button
+              onClick={() => handleEndSession(false)}
+              disabled={isEnding}
+              style={{
+                flex: 1,
+                padding: '12px 16px',
+                background: isEnding ? 'rgba(255, 255, 255, 0.05)' : 'linear-gradient(135deg, #f093fb 0%, #f5576c 100%)',
+                border: '1px solid rgba(255, 255, 255, 0.1)',
+                borderRadius: 8,
+                color: '#fff',
+                fontSize: 13,
+                fontWeight: 600,
+                cursor: isEnding ? 'not-allowed' : 'pointer',
+                opacity: isEnding ? 0.5 : 1,
+                transition: 'all 0.2s ease'
+              }}
+              onMouseEnter={(e) => {
+                if (!isEnding) {
+                  e.target.style.transform = 'translateY(-1px)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(245, 87, 108, 0.4)';
+                }
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'none';
+              }}
+            >
+              {isEnding ? '⏳ Ending...' : '🛑 End Session'}
+            </button>
+          </div>
+
+          {endingError && (
             <div style={{
-              marginTop: 16,
+              marginTop: 12,
               padding: 12,
               background: 'rgba(255, 107, 107, 0.1)',
               border: '1px solid rgba(255, 107, 107, 0.3)',
@@ -257,7 +379,23 @@ export function SessionTimer({ session, onExpire }) {
               textAlign: 'center',
               fontWeight: 500
             }}>
-              ⚠️ Session expired - Payment required to continue
+              ❌ {endingError}
+            </div>
+          )}
+
+          {isExpired && (
+            <div style={{
+              marginTop: 12,
+              padding: 12,
+              background: 'rgba(255, 107, 107, 0.1)',
+              border: '1px solid rgba(255, 107, 107, 0.3)',
+              borderRadius: 8,
+              fontSize: 12,
+              color: '#ff6b6b',
+              textAlign: 'center',
+              fontWeight: 500
+            }}>
+              ⚠️ Session expired - Payments distributed automatically
             </div>
           )}
         </div>
