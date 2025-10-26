@@ -621,77 +621,127 @@ export default function OwnerDashboard() {
           </div>
         </div>
 
-        {/* Dashboard Info Section */}
+        {/* Dashboard Info Section - Full Width */}
         <div style={{
-          background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%)',
-          border: '1px solid rgba(0, 212, 255, 0.3)',
-          borderRadius: 16,
-          padding: 24,
-          marginBottom: 32,
-          backdropFilter: 'blur(10px)'
+          background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(167, 139, 250, 0.15) 100%)',
+          border: '1px solid rgba(0, 212, 255, 0.4)',
+          borderRadius: 20,
+          padding: '40px 32px',
+          marginBottom: 40,
+          backdropFilter: 'blur(20px)',
+          boxShadow: '0 8px 32px rgba(0, 212, 255, 0.2)',
+          position: 'relative',
+          overflow: 'hidden'
         }}>
-          <h2 style={{ 
-            margin: '0 0 12px', 
-            fontSize: 24, 
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%)',
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor: 'transparent'
-          }}>
-            Agent Owner Dashboard
-          </h2>
-          <p style={{ 
-            margin: 0, 
-            fontSize: 14, 
-            lineHeight: 1.6,
-            color: 'rgba(255,255,255,0.7)'
-          }}>
-            Manage your AI agents, track performance metrics, and monitor revenue in real-time. 
-            Connect your agents from Agentverse, edit their code, and watch them earn as users rent them for various tasks.
-          </p>
-          <div style={{ 
-            display: 'grid', 
-            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
-            gap: 16,
-            marginTop: 20
-          }}>
-            <div style={{ 
-              background: 'rgba(0, 212, 255, 0.1)',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid rgba(0, 212, 255, 0.2)'
+          {/* Animated background gradient */}
+          <div style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            background: 'radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 50%)',
+            pointerEvents: 'none'
+          }}></div>
+          
+          <div style={{ position: 'relative', zIndex: 1 }}>
+            <h2 style={{ 
+              margin: '0 0 16px', 
+              fontSize: 32, 
+              fontWeight: 700,
+              background: 'linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%)',
+              WebkitBackgroundClip: 'text',
+              WebkitTextFillColor: 'transparent',
+              letterSpacing: '-0.5px'
             }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
-                📊 Performance Tracking
-              </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
-                Real-time scores via Envio indexer
-              </div>
-            </div>
-            <div style={{ 
-              background: 'rgba(167, 139, 250, 0.1)',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid rgba(167, 139, 250, 0.2)'
+              Agent Owner Dashboard
+            </h2>
+            <p style={{ 
+              margin: '0 0 28px', 
+              fontSize: 16, 
+              lineHeight: 1.7,
+              color: 'rgba(255,255,255,0.85)',
+              maxWidth: '800px'
             }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
-                💰 Revenue Analytics
-              </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
-                Track earnings from agent rentals
-              </div>
-            </div>
+              Manage your AI agents, track performance metrics, and monitor revenue in real-time. 
+              Connect your agents from Agentverse, edit their code, and watch them earn as users rent them for various tasks.
+            </p>
             <div style={{ 
-              background: 'rgba(81, 207, 102, 0.1)',
-              padding: 12,
-              borderRadius: 8,
-              border: '1px solid rgba(81, 207, 102, 0.2)'
+              display: 'grid', 
+              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gap: 20
             }}>
-              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
-                ✏️ Code Management
+              <div style={{ 
+                background: 'rgba(0, 212, 255, 0.15)',
+                padding: '20px 24px',
+                borderRadius: 12,
+                border: '1px solid rgba(0, 212, 255, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(0, 212, 255, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>📊</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#00d4ff', marginBottom: 6 }}>
+                  Performance Tracking
+                </div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+                  Real-time scores via Envio blockchain indexer
+                </div>
               </div>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
-                Edit and update agent logic on-the-fly
+              <div style={{ 
+                background: 'rgba(167, 139, 250, 0.15)',
+                padding: '20px 24px',
+                borderRadius: 12,
+                border: '1px solid rgba(167, 139, 250, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(167, 139, 250, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>💰</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#a78bfa', marginBottom: 6 }}>
+                  Revenue Analytics
+                </div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+                  Track earnings from agent rentals on-chain
+                </div>
+              </div>
+              <div style={{ 
+                background: 'rgba(81, 207, 102, 0.15)',
+                padding: '20px 24px',
+                borderRadius: 12,
+                border: '1px solid rgba(81, 207, 102, 0.3)',
+                transition: 'all 0.3s ease',
+                cursor: 'pointer'
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.transform = 'translateY(-4px)'
+                e.currentTarget.style.boxShadow = '0 12px 24px rgba(81, 207, 102, 0.3)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}>
+                <div style={{ fontSize: 28, marginBottom: 8 }}>✏️</div>
+                <div style={{ fontSize: 14, fontWeight: 600, color: '#51cf66', marginBottom: 6 }}>
+                  Code Management
+                </div>
+                <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.8)', lineHeight: 1.5 }}>
+                  Edit and update agent logic on-the-fly
+                </div>
               </div>
             </div>
           </div>
@@ -711,22 +761,41 @@ export default function OwnerDashboard() {
                       key={a.agent_id || idx} 
                       ref={el => cardRefs.current[idx] = el}
                       className="glass colorful agent-card" 
-                      style={{ minHeight: 320, cursor: 'pointer', transition: 'all 0.3s ease' }}
-                      onMouseEnter={(e) => {
-                        gsap.to(e.currentTarget, {
-                          y: -8,
-                          scale: 1.02,
-                          boxShadow: '0 20px 40px rgba(0, 212, 255, 0.3)',
+                      style={{ 
+                        minHeight: 320, 
+                        cursor: 'pointer', 
+                        transition: 'all 0.3s ease',
+                        transformStyle: 'preserve-3d',
+                        perspective: '1000px'
+                      }}
+                      onMouseMove={(e) => {
+                        const card = e.currentTarget
+                        const rect = card.getBoundingClientRect()
+                        const x = e.clientX - rect.left
+                        const y = e.clientY - rect.top
+                        const centerX = rect.width / 2
+                        const centerY = rect.height / 2
+                        const rotateX = (y - centerY) / 20
+                        const rotateY = (centerX - x) / 20
+                        
+                        gsap.to(card, {
+                          rotateX: rotateX,
+                          rotateY: rotateY,
+                          y: -12,
+                          scale: 1.03,
+                          boxShadow: '0 25px 50px rgba(0, 212, 255, 0.4)',
                           duration: 0.3,
                           ease: 'power2.out'
                         })
                       }}
                       onMouseLeave={(e) => {
                         gsap.to(e.currentTarget, {
+                          rotateX: 0,
+                          rotateY: 0,
                           y: 0,
                           scale: 1,
                           boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
-                          duration: 0.3,
+                          duration: 0.5,
                           ease: 'power2.out'
                         })
                       }}
@@ -827,24 +896,51 @@ export default function OwnerDashboard() {
                         </div>
                       )}
 
-                      {/* Agent Info */}
-                      <div className="agent-stats">
-                        <div className="agent-stat">
-                          <div className="agent-stat-value" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-                            <span>{a.status}</span>
-                            <button 
-                              className={`btn ${a.connected ? 'success' : 'primary'}`} 
-                              onClick={(e) => {
-                                e.stopPropagation()
-                                if (!a.connected) connectAgent(a)
-                              }}
-                              disabled={a.connected || !!connectingMap[a.agent_id]}
-                              style={{ fontSize: 11, padding: '4px 8px' }}
-                            >
-                              {a.connected ? '✓ Connected' : (connectingMap[a.agent_id] ? 'Connecting...' : 'Connect')}
-                            </button>
+                      {/* Agent Info - Professional Layout */}
+                      <div style={{ 
+                        display: 'flex', 
+                        justifyContent: 'space-between', 
+                        alignItems: 'center',
+                        padding: '12px 16px',
+                        background: 'rgba(0,0,0,0.3)',
+                        borderRadius: 8,
+                        marginTop: 12
+                      }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                          <div style={{
+                            padding: '6px 12px',
+                            background: a.status === 'active' ? 'rgba(81, 207, 102, 0.2)' : 'rgba(255, 193, 7, 0.2)',
+                            border: `1px solid ${a.status === 'active' ? 'rgba(81, 207, 102, 0.4)' : 'rgba(255, 193, 7, 0.4)'}`,
+                            borderRadius: 6,
+                            fontSize: 12,
+                            fontWeight: 600,
+                            color: a.status === 'active' ? '#51cf66' : '#ffc107',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px'
+                          }}>
+                            {a.status}
                           </div>
-                          <div className="agent-stat-label">Status</div>
+                          <button 
+                            className={`btn ${a.connected ? 'success' : 'primary'}`} 
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (!a.connected) connectAgent(a)
+                            }}
+                            disabled={a.connected || !!connectingMap[a.agent_id]}
+                            style={{ 
+                              fontSize: 12, 
+                              padding: '8px 16px',
+                              fontWeight: 600,
+                              borderRadius: 6,
+                              background: a.connected ? 'rgba(81, 207, 102, 0.2)' : 'rgba(0, 212, 255, 0.2)',
+                              border: `1px solid ${a.connected ? 'rgba(81, 207, 102, 0.4)' : 'rgba(0, 212, 255, 0.4)'}`,
+                              color: a.connected ? '#51cf66' : '#00d4ff',
+                              cursor: a.connected ? 'default' : 'pointer',
+                              opacity: a.connected ? 0.7 : 1
+                            }}
+                          >
+                            {a.connected ? '✓ Connected' : (connectingMap[a.agent_id] ? 'Connecting...' : 'Connect to Teela')}
+                          </button>
                         </div>
                         <div className="agent-stat">
                           <div className="agent-stat-value">{a.address ? a.address.slice(0, 10) + '...' : '-'}</div>
