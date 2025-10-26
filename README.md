@@ -1,28 +1,39 @@
-# TEELA
+## Envio Indexer
 
-Agent-driven rental marketplace prototype.
+*Please refer to the [documentation website](https://docs.envio.dev) for a thorough guide on all [Envio](https://envio.dev) indexer features*
 
-This repository contains frontend, contracts and agents for the TEELA project. See each folder for setup instructions.
+### 🚀 Quick Deploy (Recommended)
 
-Phases:
-- Frontend: React + Vite + RainbowKit/wagmi
-- Contracts: Hardhat for smart contracts
-- Agents: Python + uAgents
+**Deploy to Envio Hosted Service (No Docker required!)**
 
-See `/README_SETUP.md` for a quick start.
-# React + Vite
+See [`QUICK_DEPLOY_HOSTED.md`](./QUICK_DEPLOY_HOSTED.md) for 5-minute setup guide.
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+```bash
+# 1. Push to GitHub
+git push origin main
 
-Currently, two official plugins are available:
+# 2. Deploy at https://envio.dev
+# 3. Get your GraphQL endpoint
+# 4. Update .env with endpoint URL
+# 5. Done! 24/7 uptime, auto-deployments, built-in monitoring
+```
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+### 📊 GraphQL Endpoint
 
-## React Compiler
+**Production (Hosted Service):**
+```
+https://indexer.bigdevenergy.link/YOUR-ID/v1/graphql
+```
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 🛠️ Local Development
 
-## Expanding the ESLint configuration
+**Generate types from config:**
+```bash
+npm run envio:codegen
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Pre-requisites
+
+- [Node.js (use v18 or newer)](https://nodejs.org/en/download/current)
+- [npm or pnpm](https://nodejs.org/en/download/current)
+- GitHub account (for hosted deployment)

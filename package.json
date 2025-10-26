@@ -2,7 +2,6 @@
   "name": "ethonline25",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
   "scripts": {
     "dev": "bash scripts/cleanup-ports.sh && concurrently -k -n dev:frontend,dev:backend,dev:lab,dev:save -c green,blue,magenta,cyan \"vite\" \"bash backend/start-backend.sh\" \"python3 agents/lab_simulator.py\" \"node server/saveAgentServer.js\"",
     "dev:backend": "bash backend/start-backend.sh",
@@ -13,10 +12,7 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "submit-scores": "node scripts/submitScoresViaEscrow.js",
-    "envio:codegen": "envio codegen",
-    "envio:dev": "envio dev",
-    "envio:start": "envio start",
-    "envio:deploy": "envio deploy"
+    "envio:codegen": "envio codegen"
   },
   "dependencies": {
     "@clerk/clerk-react": "^5.0.0",
