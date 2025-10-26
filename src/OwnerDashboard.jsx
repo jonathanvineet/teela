@@ -94,19 +94,17 @@ export default function OwnerDashboard() {
           console.log('✅ Loaded scores from Envio: 0 events')
         }
       } catch (error) {
-        console.error('Error fetching from Envio:', error)
-        // Fallback to direct contract calls
+        // Silently fallback to direct contract calls
         await fetchScoresFromContract()
       } finally {
         setLoadingScores(false)
       }
     }
     
-    // Fallback: Direct contract calls if Envio fails
+    // Direct contract calls
     async function fetchScoresFromContract() {
       if (!publicClient) return
       
-      console.log('⚠️ Falling back to direct contract calls')
       const scores = {}
       
       for (const agent of importedAgents) {
