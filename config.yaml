@@ -1,17 +1,19 @@
 # yaml-language-server: $schema=./node_modules/envio/evm.schema.json
 name: teela-agent-scoring
 description: TEELA Agent Scoring Indexer
-networks:
-- id: 11155111
-  start_block: 9493460
-  contracts:
+unordered_multichain_mode: false
+preload_handlers: true
+contracts:
   - name: AgentScoring
-    address:
-    - 0x2364Fe8d139f1A3eA88399d0217c7aCA6D712f19
     abi_file_path: ./contracts/AgentScoring.abi.json
     handler: ./src/EventHandlers.js
     events:
-    - event: EscrowUpdated(address newEscrow)
-    - event: ScoreRecorded(string agentId, uint256 score, uint256 revenue)
-unordered_multichain_mode: false
-preload_handlers: true
+      - event: EscrowUpdated(address newEscrow)
+      - event: ScoreRecorded(string agentId, uint256 score, uint256 revenue)
+networks:
+  - id: 11155111
+    start_block: 9493460
+    contracts:
+      - name: AgentScoring
+        address:
+          - 0x2364Fe8d139f1A3eA88399d0217c7aCA6D712f19
