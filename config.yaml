@@ -12,3 +12,5 @@ networks:
         events:
           - event: ScoreRecorded(string agentId, uint256 score, uint256 revenue)
           - event: EscrowUpdated(address newEscrow)
+unordered_multichain_mode: false
+preload_handlers: true
