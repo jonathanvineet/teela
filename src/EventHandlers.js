@@ -17,8 +17,8 @@ AgentScoring.ScoreRecorded.handler(async ({ event, context }) => {
     agentId: agentId,
     score: event.params.score,
     revenue: event.params.revenue,
-    timestamp: event.block.timestamp,
-    blockNumber: event.block.number,
+    timestamp: BigInt(event.block.timestamp),
+    blockNumber: BigInt(event.block.number),
   };
   context.AgentScoring_ScoreRecorded.set(scoreEvent);
   
@@ -33,7 +33,7 @@ AgentScoring.ScoreRecorded.handler(async ({ event, context }) => {
       sessionCount: 0,
       averageScore: 0n,
       totalRevenue: 0n,
-      lastUpdated: event.block.timestamp,
+      lastUpdated: BigInt(event.block.timestamp),
     };
   }
   
@@ -42,7 +42,7 @@ AgentScoring.ScoreRecorded.handler(async ({ event, context }) => {
   agent.sessionCount = agent.sessionCount + 1;
   agent.averageScore = agent.totalScore / BigInt(agent.sessionCount);
   agent.totalRevenue = agent.totalRevenue + event.params.revenue;
-  agent.lastUpdated = event.block.timestamp;
+  agent.lastUpdated = BigInt(event.block.timestamp);
   
   // 4. Save the updated agent
   context.Agent.set(agent);
