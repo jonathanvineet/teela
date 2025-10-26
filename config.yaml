@@ -3,6 +3,8 @@ name: teela-agent-scoring
 networks:
 - id: 11155111
   start_block: 7493316
+  rpc_config:
+    url: https://sepolia.infura.io/v3/bfebfef38464407e8b4ff77652a3eed7
   contracts:
   - name: AgentScoring
     address:
@@ -12,5 +14,5 @@ networks:
     - event: BackendUpdated(address newBackend)
     - event: EscrowUpdated(address newEscrow)
     - event: ScoreRecorded(string agentId, uint256 score, uint256 revenue)
-unordered_multichain_mode: true
+unordered_multichain_mode: false
 preload_handlers: true
