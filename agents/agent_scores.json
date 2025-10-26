@@ -1,0 +1,90 @@
+{
+  "agents": {
+    "debt": {
+      "agent_name": "debt",
+      "total_queries": 1,
+      "metrics": {
+        "quality_scores": [
+          0.83
+        ],
+        "speed_scores": [
+          0.9277072350184122
+        ],
+        "relevance_scores": [
+          1.0
+        ],
+        "response_lengths": [
+          862
+        ]
+      },
+      "weighted_scores": {
+        "quality": 0.83,
+        "speed": 0.9277072350184122,
+        "relevance": 1.0,
+        "consistency": 1.0
+      },
+      "overall_score": 0.9139268087546031,
+      "performance_trend": "stable",
+      "last_used": 1761460226.9236128
+    },
+    "savings": {
+      "agent_name": "savings",
+      "total_queries": 1,
+      "metrics": {
+        "quality_scores": [
+          0.87
+        ],
+        "speed_scores": [
+          0.8251393715540568
+        ],
+        "relevance_scores": [
+          0.3
+        ],
+        "response_lengths": [
+          1205
+        ]
+      },
+      "weighted_scores": {
+        "quality": 0.87,
+        "speed": 0.8251393715540568,
+        "relevance": 0.3,
+        "consistency": 1.0
+      },
+      "overall_score": 0.7292848428885141,
+      "performance_trend": "stable",
+      "last_used": 1761460229.999569
+    },
+    "budget": {
+      "agent_name": "budget",
+      "total_queries": 1,
+      "metrics": {
+        "quality_scores": [
+          0.84
+        ],
+        "speed_scores": [
+          0.6277673721313477
+        ],
+        "relevance_scores": [
+          0.3
+        ],
+        "response_lengths": [
+          368
+        ]
+      },
+      "weighted_scores": {
+        "quality": 0.84,
+        "speed": 0.6277673721313477,
+        "relevance": 0.3,
+        "consistency": 1.0
+      },
+      "overall_score": 0.6679418430328369,
+      "performance_trend": "stable",
+      "last_used": 1761460235.9190662
+    }
+  },
+  "global_stats": {
+    "total_queries": 3,
+    "avg_response_time": 6.193860212961833
+  },
+  "last_updated": 1761460235.9190788
+}

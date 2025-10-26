@@ -2,8 +2,9 @@ import { useState, useEffect } from 'react'
 import Particles from './Particles'
 import { ConnectButton } from '@rainbow-me/rainbowkit'
 import { SignedIn, SignedOut, SignInButton, SignUpButton, UserButton } from '@clerk/clerk-react'
+import { SessionTimer } from './components/SessionTimer'
 
-export default function Layout({ children, currentView, onNavigate, onBack, canGoBack }) {
+export default function Layout({ children, currentView, onNavigate, onBack, canGoBack, session, onSessionExpire }) {
   const [showApiPanel, setShowApiPanel] = useState(false)
   const [apiKey, setApiKey] = useState(() => {
     try { return localStorage.getItem('agentverse_token') || '' } catch { return '' }
@@ -80,6 +81,11 @@ export default function Layout({ children, currentView, onNavigate, onBack, canG
           </div>
 
           <div className="controls-row">
+            {/* Session Timer */}
+            {session && session.startTime && (
+              <SessionTimer session={session} onExpire={onSessionExpire} />
+            )}
+            
             <ConnectButton />
             <SignedOut>
               <SignInButton />

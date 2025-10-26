@@ -1,5 +1,19 @@
 import { ParticleCard } from './MagicBento'
 
+function isPaidFor(domain, activeSession) {
+  if (!activeSession || !activeSession.domain || !activeSession.startTime) {
+    return false;
+  }
+  
+  if (activeSession.domain !== domain.id) {
+    return false;
+  }
+  
+  const now = Date.now();
+  const sessionEnd = activeSession.startTime + (60 * 60 * 1000);
+  return now < sessionEnd;
+}
+
 const DOMAINS = [
   {
     id: 'financial',
@@ -75,78 +89,190 @@ const DOMAINS = [
   }
 ]
 
-export default function TeelaDomains({ onSelectDomain }) {
+export default function TeelaDomains({ onSelectDomain, activeSession }) {
   return (
-    <div style={{ padding: 24 }}>
-      <div style={{ textAlign: 'center', marginBottom: 32 }}>
-        <h1 style={{ fontSize: 42, margin: '0 0 12px' }}>Teela AI Orchestrator</h1>
-        <p className="muted" style={{ fontSize: 18 }}>
+    <div style={{ padding: '40px 24px' }}>
+      {/* Header */}
+      <div style={{ textAlign: 'center', marginBottom: 48 }}>
+        <h1 style={{ 
+          fontSize: 48, 
+          fontWeight: 700,
+          margin: '0 0 16px',
+          background: 'linear-gradient(135deg, #fff 0%, #a78bfa 100%)',
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor: 'transparent',
+          backgroundClip: 'text'
+        }}>
+          Teela AI Orchestrator
+        </h1>
+        <p style={{ 
+          fontSize: 18, 
+          color: 'rgba(255, 255, 255, 0.7)',
+          margin: 0
+        }}>
           Select a domain to start chatting with specialized agents
         </p>
       </div>
 
+      {/* Cards Grid */}
       <div style={{ 
         display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', 
-        gap: 28,
-        maxWidth: '1200px',
-        margin: '0 auto'
+        gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', 
+        gap: 32,
+        maxWidth: '1300px',
+        margin: '0 auto',
+        padding: '0 20px'
       }}>
-        {DOMAINS.map((domain) => (
+        {DOMAINS.map((domain) => {
+          const paid = isPaidFor(domain, activeSession);
+          return (
           <ParticleCard
             key={domain.id}
-            className="glass colorful square"
-            style={{ padding: 28, minHeight: 380 }}
+            className="glass colorful"
+            style={{ 
+              padding: 0,
+              minHeight: 480,
+              overflow: 'visible',
+              display: 'block'
+            }}
             enableTilt={true}
             enableMagnetism={true}
             clickEffect={true}
             particleCount={8}
             glowColor="132, 0, 255"
           >
-            <div>
-              <img 
-                className="card-thumb"
-                src={domain.icon} 
-                alt={domain.title}
-                style={{ width: '100%', height: 140, objectFit: 'cover', borderRadius: 12 }}
-              />
-              <h3>{domain.title}</h3>
-              <p>{domain.description}</p>
+            {/* Wrapper div to contain everything */}
+            <div style={{ 
+              position: 'relative',
+              zIndex: 2,
+              display: 'flex', 
+              flexDirection: 'column',
+              height: '100%',
+              minHeight: 480
+            }}>
+              {/* Image Section */}
               <div style={{ 
-                fontSize: 16, 
-                fontWeight: 600,
-                color: '#00d4ff', 
-                background: 'rgba(0, 212, 255, 0.1)', 
-                padding: '8px 12px', 
-                borderRadius: 8,
-                textAlign: 'center',
-                border: '1px solid rgba(0, 212, 255, 0.3)',
-                marginBottom: 8
+                width: '100%', 
+                height: 180,
+                overflow: 'hidden',
+                flexShrink: 0,
+                position: 'relative'
               }}>
-                💳 {domain.hourlyRate} ETH/hour
+                <img 
+                  src={domain.icon} 
+                  alt={domain.title}
+                  style={{ 
+                    width: '100%', 
+                    height: '100%', 
+                    objectFit: 'cover',
+                    display: 'block'
+                  }}
+                />
               </div>
-              {domain.sensitive && (
-                <div style={{ 
-                  fontSize: 11, 
-                  color: '#ff9800', 
-                  background: 'rgba(255, 152, 0, 0.1)', 
-                  padding: '4px 8px', 
-                  borderRadius: 6,
-                  textAlign: 'center',
-                  marginBottom: 8
+
+              {/* Content Section */}
+              <div style={{ 
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '14px',
+                flex: 1,
+                position: 'relative',
+                backgroundColor: 'transparent'
+              }}>
+                <h3 style={{ 
+                  fontSize: 22, 
+                  fontWeight: 600,
+                  margin: '0 0 4px 0',
+                  padding: 0,
+                  color: '#fff',
+                  lineHeight: 1.3
                 }}>
-                  ⚠️ May request sensitive information
+                  {domain.title}
+                </h3>
+                
+                <p style={{ 
+                  fontSize: 14, 
+                  lineHeight: 1.6, 
+                  margin: '0 0 8px 0',
+                  padding: 0,
+                  color: 'rgba(255, 255, 255, 0.8)',
+                  flex: 1
+                }}>
+                  {domain.description}
+                </p>
+                {/* Price Badge */}
+                <div style={{ 
+                  fontSize: 16, 
+                  fontWeight: 600,
+                  color: '#00d4ff', 
+                  background: 'rgba(0, 212, 255, 0.15)', 
+                  padding: '12px 16px', 
+                  borderRadius: 8,
+                  textAlign: 'center',
+                  border: '1px solid rgba(0, 212, 255, 0.4)',
+                  margin: 0
+                }}>
+                  💳 {domain.hourlyRate} ETH/hour
                 </div>
-              )}
-              <button 
-                className="btn primary" 
-                onClick={() => onSelectDomain(domain)}
-              >
-                Start Chat →
-              </button>
+
+                {/* Warning Badge */}
+                {domain.sensitive && (
+                  <div style={{ 
+                    fontSize: 12, 
+                    color: '#ff9800', 
+                    background: 'rgba(255, 152, 0, 0.15)', 
+                    padding: '8px 12px', 
+                    borderRadius: 6,
+                    textAlign: 'center',
+                    border: '1px solid rgba(255, 152, 0, 0.4)',
+                    margin: 0
+                  }}>
+                    ⚠️ May request sensitive information
+                  </div>
+                )}
+
+                {/* Paid Badge */}
+                {paid && (
+                  <div style={{ 
+                    fontSize: 13, 
+                    fontWeight: 600,
+                    color: '#51cf66', 
+                    background: 'rgba(81, 207, 102, 0.15)', 
+                    padding: '10px 14px', 
+                    borderRadius: 6,
+                    textAlign: 'center',
+                    border: '1px solid rgba(81, 207, 102, 0.4)',
+                    margin: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 6
+                  }}>
+                    ✅ Paid - Access Active
+                  </div>
+                )}
+
+                {/* Button */}
+                <button 
+                  className="btn primary" 
+                  onClick={() => onSelectDomain(domain)}
+                  style={{ 
+                    padding: '14px 24px', 
+                    fontSize: 16, 
+                    fontWeight: 600,
+                    width: '100%',
+                    margin: 0,
+                    marginTop: 'auto'
+                  }}
+                >
+                  {paid ? 'Continue Chat →' : 'Start Chat →'}
+                </button>
+              </div>
             </div>
           </ParticleCard>
-        ))}
+          );
+        })}
       </div>
     </div>
   )

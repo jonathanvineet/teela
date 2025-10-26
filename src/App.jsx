@@ -1,3 +1,4 @@
+/* eslint-disable no-empty */
 import { useState, useEffect } from 'react'
 import './App.css'
 import AgentChat from './AgentChat'
@@ -11,6 +12,8 @@ import AgentsList from './AgentsList'
 import AgentUpload from './AgentUpload'
 import OwnerDashboard from './OwnerDashboard'
 import BanterLoader from './BanterLoader'
+import { PaymentModal } from './components/PaymentModal'
+import { SessionTimer } from './components/SessionTimer'
 import {
   SignedIn,
   SignedOut,
@@ -39,6 +42,20 @@ function App() {
       const saved = sessionStorage.getItem('teela_domain')
       return saved ? JSON.parse(saved) : null
     } catch {
+      return null
+    }
+  })
+  const [showPaymentModal, setShowPaymentModal] = useState(false)
+  const [pendingDomain, setPendingDomain] = useState(null)
+  const [activeSession, setActiveSession] = useState(() => {
+    // Restore active session from sessionStorage
+    try {
+      const saved = sessionStorage.getItem('teela_session')
+      const session = saved ? JSON.parse(saved) : null
+      console.log('Restored session from storage:', session)
+      return session
+    } catch (e) {
+      console.error('Failed to restore session:', e)
       return null
     }
   })
@@ -130,7 +147,22 @@ function App() {
       {isLoading ? (
         <BanterLoader message="Initializing TEELA..." />
       ) : (
-        <Layout currentView={view} onNavigate={handleNavigate} onBack={handleBack} canGoBack={navigationHistory.length > 1}>
+        <Layout 
+          currentView={view} 
+          onNavigate={handleNavigate} 
+          onBack={handleBack} 
+          canGoBack={navigationHistory.length > 1}
+          session={activeSession}
+          onSessionExpire={() => {
+            // Session expired - clear session and go back to domain selection
+            setActiveSession(null);
+            setSelectedDomain(null);
+            try {
+              sessionStorage.removeItem('teela_session');
+              sessionStorage.removeItem('teela_domain');
+            } catch {}
+          }}
+        >
           <div style={{ display: 'grid', gap: 20 }}>
           {/* HOME */}
           {view === 'home' && (
@@ -261,14 +293,60 @@ function App() {
           )}
 
           {view === 'teela' && !selectedDomain && (
-            <TeelaDomains onSelectDomain={(domain) => {
-              setSelectedDomain(domain)
-              try {
-                sessionStorage.setItem('teela_domain', JSON.stringify(domain))
-              } catch {
-                // Ignore sessionStorage errors
+            <TeelaDomains 
+              activeSession={activeSession}
+              onSelectDomain={(domain) => {
+              console.log('Domain selected:', domain.id);
+              console.log('Active session:', activeSession);
+              
+              // Check if there's a valid session for this domain
+              if (activeSession && activeSession.domain === domain.id) {
+                const now = Date.now();
+                const sessionEnd = activeSession.startTime + (60 * 60 * 1000);
+                const timeLeft = sessionEnd - now;
+                
+                console.log('Session found for domain, time left (ms):', timeLeft);
+                
+                if (now < sessionEnd) {
+                  // Session still valid - go directly to chat
+                  console.log('✅ Session valid! Going to chat without payment');
+                  setSelectedDomain(domain);
+                  return;
+                }
+                console.log('❌ Session expired');
+              } else {
+                console.log('❌ No valid session found');
               }
+              
+              // No valid session - show payment modal
+              console.log('Showing payment modal');
+              setPendingDomain(domain);
+              setShowPaymentModal(true);
             }} />
+          )}
+
+          {/* Payment Modal */}
+          {showPaymentModal && pendingDomain && (
+            <PaymentModal
+              domain={pendingDomain}
+              onSuccess={(sessionData) => {
+                // Payment successful - save session and open chat
+                console.log('Payment success, session data:', sessionData);
+                setActiveSession(sessionData);
+                setSelectedDomain(pendingDomain);
+                setShowPaymentModal(false);
+                try {
+                  sessionStorage.setItem('teela_domain', JSON.stringify(pendingDomain));
+                  sessionStorage.setItem('teela_session', JSON.stringify(sessionData));
+                } catch (e) {
+                  console.error('Failed to save session:', e);
+                }
+              }}
+              onClose={() => {
+                setShowPaymentModal(false)
+                setPendingDomain(null)
+              }}
+            />
           )}
 
         {/* Conditional views */}
@@ -278,24 +356,16 @@ function App() {
           </ParticleCard>
         )}
 
-        {view === 'teela' && !selectedDomain && (
-          <TeelaDomains onSelectDomain={(domain) => {
-            setSelectedDomain(domain)
-            try {
-              sessionStorage.setItem('teela_domain', JSON.stringify(domain))
-            } catch {
-              // Ignore sessionStorage errors
-            }
-          }} />
-        )}
-
         {view === 'teela' && selectedDomain && (
           <TeelaChat 
-            domain={selectedDomain} 
+            domain={selectedDomain}
+            session={activeSession}
             onClose={() => {
               setSelectedDomain(null)
+              setActiveSession(null)
               try {
                 sessionStorage.removeItem('teela_domain')
+                sessionStorage.removeItem('teela_session')
               } catch {
                 // Ignore sessionStorage errors
               }

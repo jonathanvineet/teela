@@ -1285,5 +1285,82 @@ def api_orchestration_status(job_id):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+# ==================== ESCROW ENDPOINTS ====================
+
+@app.route('/api/escrow/session/<int:session_id>', methods=['GET'])
+def get_escrow_session(session_id):
+    """Get session details from escrow contract"""
+    try:
+        from escrow_handler import get_escrow_handler
+        handler = get_escrow_handler()
+        session = handler.get_session(session_id)
+        
+        if session:
+            return jsonify({
+                'success': True,
+                'session': session
+            })
+        else:
+            return jsonify({
+                'success': False,
+                'error': 'Session not found'
+            }), 404
+            
+    except Exception as e:
+        app.logger.error(f"Error getting session: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
+@app.route('/api/escrow/distribute', methods=['POST'])
+def distribute_payment():
+    """
+    Distribute payment to agents after chat session
+    
+    Expected payload:
+    {
+        "sessionId": 0,
+        "agents": [
+            {
+                "wallet": "0x...",
+                "amount": "0.003",
+                "agentId": "teela_financial",
+                "score": 85
+            }
+        ]
+    }
+    """
+    try:
+        data = request.json
+        session_id = data.get('sessionId')
+        agents = data.get('agents', [])
+        
+        if session_id is None:
+            return jsonify({'success': False, 'error': 'sessionId required'}), 400
+        
+        if not agents:
+            return jsonify({'success': False, 'error': 'agents array required'}), 400
+        
+        # Extract arrays for contract call
+        wallets = [agent['wallet'] for agent in agents]
+        amounts = [agent['amount'] for agent in agents]
+        agent_ids = [agent['agentId'] for agent in agents]
+        scores = [agent['score'] for agent in agents]
+        
+        # Call escrow handler
+        from escrow_handler import get_escrow_handler
+        handler = get_escrow_handler()
+        result = handler.distribute_payment(
+            session_id,
+            wallets,
+            amounts,
+            agent_ids,
+            scores
+        )
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        app.logger.error(f"Error distributing payment: {e}")
+        return jsonify({'success': False, 'error': str(e)}), 500
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=5001, debug=True)
