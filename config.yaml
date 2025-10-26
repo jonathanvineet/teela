@@ -1,20 +1,14 @@
 name: teela-agent-scoring
 description: TEELA Agent Scoring Indexer
-unordered_multichain_mode: false
-preload_handlers: true
-
-contracts:
-  - name: AgentScoring
-    abi_file_path: ./contracts/AgentScoring.abi.json
-    handler: ./src/EventHandlers.js
-    events:
-      - event: "ScoreRecorded(string agentId, uint256 score, uint256 revenue)"
-      - event: "EscrowUpdated(address newEscrow)"
-
 networks:
-  - id: 11155111
+  - id: 11155111  # Sepolia
     start_block: 9493460
     contracts:
       - name: AgentScoring
         address:
           - "0x2364Fe8d139f1A3eA88399d0217c7aCA6D712f19"
+        handler: src/EventHandlers.js
+        events:
+          - event: "ScoreRecorded(string agentId, uint256 score, uint256 revenue)"
+          - event: "EscrowUpdated(address newEscrow)"
+        abi_file_path: contracts/AgentScoring.abi.json

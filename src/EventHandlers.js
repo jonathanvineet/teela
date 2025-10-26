@@ -1,21 +1,14 @@
-/*
- * Please refer to https://docs.envio.dev for a thorough guide on all Envio indexer features
- */
-const {
- AgentScoring,
-} = require("generated");
+const { AgentScoring } = require("generated");
 
-AgentScoring.EscrowUpdated.handler(async ({event, context}) => {
+AgentScoring.EscrowUpdated.handler(async ({ event, context }) => {
   const entity = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
     newEscrow: event.params.newEscrow,
   };
-
   context.AgentScoring_EscrowUpdated.set(entity);
 });
 
-
-AgentScoring.ScoreRecorded.handler(async ({event, context}) => {
+AgentScoring.ScoreRecorded.handler(async ({ event, context }) => {
   const agentId = event.params.agentId;
   
   // 1. Store the raw score event
@@ -33,7 +26,6 @@ AgentScoring.ScoreRecorded.handler(async ({event, context}) => {
   let agent = await context.Agent.get(agentId);
   
   if (!agent) {
-    // Create new agent entry
     agent = {
       id: agentId,
       agentId: agentId,
@@ -55,4 +47,3 @@ AgentScoring.ScoreRecorded.handler(async ({event, context}) => {
   // 4. Save the updated agent
   context.Agent.set(agent);
 });
-
