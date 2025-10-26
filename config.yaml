@@ -8,6 +8,7 @@ networks:
   - name: AgentScoring
     address:
     - 0x2364Fe8d139f1A3eA88399d0217c7aCA6D712f19
+    abi_file_path: ./contracts/AgentScoring.abi.json
     handler: ./src/EventHandlers.js
     events:
     - event: EscrowUpdated(address newEscrow)
