@@ -1,6 +1,4 @@
 name: teela-agent-scoring
-description: TEELA Agent Scoring Indexer
-
 networks:
   - id: 11155111
     start_block: 9493316
@@ -9,9 +7,8 @@ networks:
     contracts:
       - name: AgentScoring
         address:
-          - "0x2364Fe8d139f1A3eA88399d0217c7aCA6D712f19"
+          - 0x2364Fe8d139f1A3eA88399d0217c7aCA6D712f19
         handler: src/EventHandlers.ts
-        abi_file_path: contracts/AgentScoring.abi.json
         events:
-          - event: "ScoreRecorded(string,uint256,uint256)"
-          - event: "EscrowUpdated(address)"
+          - event: ScoreRecorded(string agentId, uint256 score, uint256 revenue)
+          - event: EscrowUpdated(address newEscrow)
