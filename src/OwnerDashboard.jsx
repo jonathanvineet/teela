@@ -40,18 +40,15 @@ export default function OwnerDashboard() {
       setLoadingScores(true)
       try {
         // Use Envio GraphQL endpoint
-        const ENVIO_URL = process.env.VITE_ENVIO_URL || 'http://localhost:8080/v1/graphql'
+        const ENVIO_URL = import.meta.env.VITE_ENVIO_URL || 'http://localhost:8080/v1/graphql'
         
         const query = `
-          query GetAgents {
-            Agent {
+          query GetScores {
+            AgentScoring_ScoreRecorded {
               id
               agentId
-              totalScore
-              sessionCount
-              averageScore
-              totalRevenue
-              lastUpdated
+              score
+              revenue
             }
           }
         `
@@ -62,27 +59,39 @@ export default function OwnerDashboard() {
           body: JSON.stringify({ query })
         })
         
-        const { data, errors } = await response.json()
+        const data = await response.json()
         
-        if (errors) {
-          console.error('GraphQL errors:', errors)
-          // Fallback to direct contract calls
-          await fetchScoresFromContract()
-          return
-        }
-        
-        if (data && data.Agent) {
-          const scores = {}
-          data.Agent.forEach(agent => {
-            scores[agent.agentId] = {
-              totalScore: agent.totalScore,
-              sessionCount: agent.sessionCount,
-              averageScore: agent.averageScore,
-              totalRevenue: agent.totalRevenue
+        if (data.data && data.data.AgentScoring_ScoreRecorded) {
+          const scores = data.data.AgentScoring_ScoreRecorded
+          console.log('✅ Loaded scores from Envio:', scores.length, 'events')
+          
+          // Aggregate scores by agentId
+          const scoresMap = {}
+          scores.forEach(event => {
+            const agentId = event.agentId
+            if (!scoresMap[agentId]) {
+              scoresMap[agentId] = {
+                totalScore: 0,
+                sessionCount: 0,
+                averageScore: 0,
+                totalRevenue: 0,
+              }
             }
+            scoresMap[agentId].totalScore += Number(event.score)
+            scoresMap[agentId].sessionCount += 1
+            scoresMap[agentId].totalRevenue += Number(event.revenue) / 1e18
           })
-          setAgentScores(scores)
-          console.log('✅ Loaded scores from Envio:', Object.keys(scores).length, 'agents')
+          
+          // Calculate averages
+          Object.keys(scoresMap).forEach(agentId => {
+            scoresMap[agentId].averageScore = Math.round(
+              scoresMap[agentId].totalScore / scoresMap[agentId].sessionCount
+            )
+          })
+          
+          setAgentScores(scoresMap)
+        } else {
+          console.log('✅ Loaded scores from Envio: 0 events')
         }
       } catch (error) {
         console.error('Error fetching from Envio:', error)
