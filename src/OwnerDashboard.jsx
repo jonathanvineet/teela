@@ -604,73 +604,86 @@ export default function OwnerDashboard() {
       {isImporting && <BanterLoader message={importMessage} />}
       
       <div style={{ padding: 24 }}>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '0 0 12px' }}>
+        {/* Dashboard Header with Image on Left */}
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: '300px 1fr',
+          gap: 24,
+          marginBottom: 32,
+          alignItems: 'start'
+        }}>
+          {/* Left: Tilted Card */}
           <div className="sidebar-image">
             <TiltedCard
               imageSrc="/images/Agent-A.I.-Memecoin-Leads-5-Cryptos-Poised-for-a-5899-Explosion-in-2025.jpg"
               altText="Owner Dashboard"
               captionText="Owner Dashboard"
-              containerHeight="180px"
+              containerHeight="220px"
               containerWidth="100%"
-              imageHeight="180px"
+              imageHeight="220px"
               imageWidth="100%"
               rotateAmplitude={12}
               scaleOnHover={1.08}
               showMobileWarning={false}
             />
           </div>
+
+          {/* Right: Dashboard Info */}
+          <div style={{
+            background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(167, 139, 250, 0.15) 100%)',
+            border: '1px solid rgba(0, 212, 255, 0.4)',
+            borderRadius: 20,
+            padding: '32px',
+            backdropFilter: 'blur(20px)',
+            boxShadow: '0 8px 32px rgba(0, 212, 255, 0.2)',
+            position: 'relative',
+            overflow: 'hidden',
+            minHeight: '220px'
+          }}>
+            {/* Animated background gradient */}
+            <div style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              background: 'radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 50%)',
+              pointerEvents: 'none'
+            }}></div>
+            
+            <div style={{ position: 'relative', zIndex: 1 }}>
+              <h1 style={{ 
+                margin: '0 0 16px', 
+                fontSize: 42, 
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%)',
+                WebkitBackgroundClip: 'text',
+                WebkitTextFillColor: 'transparent',
+                letterSpacing: '-1px',
+                lineHeight: 1.2
+              }}>
+                Agent Owner Dashboard
+              </h1>
+              <p style={{ 
+                margin: 0, 
+                fontSize: 16, 
+                lineHeight: 1.7,
+                color: 'rgba(255,255,255,0.85)'
+              }}>
+                Manage your AI agents, track performance metrics, and monitor revenue in real-time. 
+                Connect your agents from Agentverse, edit their code, and watch them earn as users rent them for various tasks.
+              </p>
+            </div>
+          </div>
         </div>
 
-        {/* Dashboard Info Section - Full Width */}
+        {/* Feature Cards - Full Width */}
         <div style={{
-          background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.15) 0%, rgba(167, 139, 250, 0.15) 100%)',
-          border: '1px solid rgba(0, 212, 255, 0.4)',
-          borderRadius: 20,
-          padding: '40px 32px',
-          marginBottom: 40,
-          backdropFilter: 'blur(20px)',
-          boxShadow: '0 8px 32px rgba(0, 212, 255, 0.2)',
-          position: 'relative',
-          overflow: 'hidden'
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
+          gap: 20,
+          marginBottom: 40
         }}>
-          {/* Animated background gradient */}
-          <div style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: 'radial-gradient(circle at 20% 50%, rgba(0, 212, 255, 0.1) 0%, transparent 50%), radial-gradient(circle at 80% 50%, rgba(167, 139, 250, 0.1) 0%, transparent 50%)',
-            pointerEvents: 'none'
-          }}></div>
-          
-          <div style={{ position: 'relative', zIndex: 1 }}>
-            <h2 style={{ 
-              margin: '0 0 16px', 
-              fontSize: 32, 
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%)',
-              WebkitBackgroundClip: 'text',
-              WebkitTextFillColor: 'transparent',
-              letterSpacing: '-0.5px'
-            }}>
-              Agent Owner Dashboard
-            </h2>
-            <p style={{ 
-              margin: '0 0 28px', 
-              fontSize: 16, 
-              lineHeight: 1.7,
-              color: 'rgba(255,255,255,0.85)',
-              maxWidth: '800px'
-            }}>
-              Manage your AI agents, track performance metrics, and monitor revenue in real-time. 
-              Connect your agents from Agentverse, edit their code, and watch them earn as users rent them for various tasks.
-            </p>
-            <div style={{ 
-              display: 'grid', 
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-              gap: 20
-            }}>
               <div style={{ 
                 background: 'rgba(0, 212, 255, 0.15)',
                 padding: '20px 24px',
@@ -743,14 +756,22 @@ export default function OwnerDashboard() {
                   Edit and update agent logic on-the-fly
                 </div>
               </div>
-            </div>
-          </div>
         </div>
 
-            {/* Imported Agents Section with Performance Scores */}
-            {importedAgents.length > 0 && (
-              <>
-                <div className="section-title" style={{ fontSize: 20, marginBottom: 16 }}>Imported Agents</div>
+        {/* Imported Agents Section with Performance Scores */}
+        {importedAgents.length > 0 && (
+          <>
+                <h2 style={{ 
+                  fontSize: 32, 
+                  fontWeight: 700,
+                  marginBottom: 24,
+                  background: 'linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%)',
+                  WebkitBackgroundClip: 'text',
+                  WebkitTextFillColor: 'transparent',
+                  letterSpacing: '-0.5px'
+                }}>
+                  Imported Agents
+                </h2>
                 <div className="agent-cards">
                   {importedAgents.map((a, idx) => {
                     const score = agentScores[a.agent_id] || null
