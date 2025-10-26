@@ -4,6 +4,7 @@ import TiltedCard from './TiltedCard'
 import BanterLoader from './BanterLoader'
 import { AGENT_REGISTRY_ADDRESS, AGENT_REGISTRY_ABI } from './contracts/AgentRegistry'
 import { AGENT_SCORING_ADDRESS, AGENT_SCORING_ABI } from './contracts/AgentScoring'
+import gsap from 'gsap'
 
 export default function OwnerDashboard() {
   const { address, isConnected } = useAccount()
@@ -31,6 +32,29 @@ export default function OwnerDashboard() {
   const [agentScores, setAgentScores] = useState({})
   const [loadingScores, setLoadingScores] = useState(false)
   const publicClient = usePublicClient()
+  const cardRefs = useRef([])
+
+  // Animate agent cards on mount
+  useEffect(() => {
+    if (importedAgents.length > 0 && cardRefs.current.length > 0) {
+      gsap.fromTo(
+        cardRefs.current,
+        {
+          opacity: 0,
+          y: 30,
+          scale: 0.95
+        },
+        {
+          opacity: 1,
+          y: 0,
+          scale: 1,
+          duration: 0.6,
+          stagger: 0.1,
+          ease: 'power3.out'
+        }
+      )
+    }
+  }, [importedAgents.length])
 
   // Fetch agent scores from Envio GraphQL
   useEffect(() => {
@@ -596,6 +620,83 @@ export default function OwnerDashboard() {
             />
           </div>
         </div>
+
+        {/* Dashboard Info Section */}
+        <div style={{
+          background: 'linear-gradient(135deg, rgba(0, 212, 255, 0.1) 0%, rgba(167, 139, 250, 0.1) 100%)',
+          border: '1px solid rgba(0, 212, 255, 0.3)',
+          borderRadius: 16,
+          padding: 24,
+          marginBottom: 32,
+          backdropFilter: 'blur(10px)'
+        }}>
+          <h2 style={{ 
+            margin: '0 0 12px', 
+            fontSize: 24, 
+            fontWeight: 700,
+            background: 'linear-gradient(135deg, #00d4ff 0%, #a78bfa 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent'
+          }}>
+            Agent Owner Dashboard
+          </h2>
+          <p style={{ 
+            margin: 0, 
+            fontSize: 14, 
+            lineHeight: 1.6,
+            color: 'rgba(255,255,255,0.7)'
+          }}>
+            Manage your AI agents, track performance metrics, and monitor revenue in real-time. 
+            Connect your agents from Agentverse, edit their code, and watch them earn as users rent them for various tasks.
+          </p>
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
+            gap: 16,
+            marginTop: 20
+          }}>
+            <div style={{ 
+              background: 'rgba(0, 212, 255, 0.1)',
+              padding: 12,
+              borderRadius: 8,
+              border: '1px solid rgba(0, 212, 255, 0.2)'
+            }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                📊 Performance Tracking
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
+                Real-time scores via Envio indexer
+              </div>
+            </div>
+            <div style={{ 
+              background: 'rgba(167, 139, 250, 0.1)',
+              padding: 12,
+              borderRadius: 8,
+              border: '1px solid rgba(167, 139, 250, 0.2)'
+            }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                💰 Revenue Analytics
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
+                Track earnings from agent rentals
+              </div>
+            </div>
+            <div style={{ 
+              background: 'rgba(81, 207, 102, 0.1)',
+              padding: 12,
+              borderRadius: 8,
+              border: '1px solid rgba(81, 207, 102, 0.2)'
+            }}>
+              <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.6)', marginBottom: 4 }}>
+                ✏️ Code Management
+              </div>
+              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.9)' }}>
+                Edit and update agent logic on-the-fly
+              </div>
+            </div>
+          </div>
+        </div>
+
             {/* Imported Agents Section with Performance Scores */}
             {importedAgents.length > 0 && (
               <>
@@ -606,7 +707,30 @@ export default function OwnerDashboard() {
                     const formatEth = (wei) => wei ? (Number(wei) / 1e18).toFixed(6) : '0'
                     
                     return (
-                    <div key={a.agent_id || idx} className="glass colorful agent-card" style={{ minHeight: 320 }}>
+                    <div 
+                      key={a.agent_id || idx} 
+                      ref={el => cardRefs.current[idx] = el}
+                      className="glass colorful agent-card" 
+                      style={{ minHeight: 320, cursor: 'pointer', transition: 'all 0.3s ease' }}
+                      onMouseEnter={(e) => {
+                        gsap.to(e.currentTarget, {
+                          y: -8,
+                          scale: 1.02,
+                          boxShadow: '0 20px 40px rgba(0, 212, 255, 0.3)',
+                          duration: 0.3,
+                          ease: 'power2.out'
+                        })
+                      }}
+                      onMouseLeave={(e) => {
+                        gsap.to(e.currentTarget, {
+                          y: 0,
+                          scale: 1,
+                          boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
+                          duration: 0.3,
+                          ease: 'power2.out'
+                        })
+                      }}
+                    >
                       {/* Header */}
                       <div style={{ marginBottom: 16 }}>
                         <h3 style={{ margin: '0 0 4px', display: 'flex', alignItems: 'center', gap: 8 }}>
