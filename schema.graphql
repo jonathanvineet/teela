@@ -1,0 +1,27 @@
+type AgentScoring_BackendUpdated {
+  id: ID!
+  newBackend: String!
+}
+
+type AgentScoring_EscrowUpdated {
+  id: ID!
+  newEscrow: String!
+}
+
+type AgentScoring_ScoreRecorded {
+  id: ID!
+  agentId: String!
+  score: BigInt!
+  revenue: BigInt!
+}
+
+type Agent {
+  id: ID!
+  agentId: String!
+  totalScore: BigInt!
+  sessionCount: Int!
+  averageScore: BigInt!
+  totalRevenue: BigInt!
+  lastUpdated: BigInt!
+}
+
