@@ -1,7 +1,7 @@
 name: teela-agent-scoring
 description: TEELA Agent Scoring Indexer
 networks:
-  - id: 11155111  # Sepolia
+  - id: 11155111
     start_block: 9493460
     contracts:
       - name: AgentScoring

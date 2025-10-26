@@ -9,41 +9,11 @@ AgentScoring.EscrowUpdated.handler(async ({ event, context }) => {
 });
 
 AgentScoring.ScoreRecorded.handler(async ({ event, context }) => {
-  const agentId = event.params.agentId;
-  
-  // 1. Store the raw score event
-  const scoreEvent = {
+  const entity = {
     id: `${event.chainId}_${event.block.number}_${event.logIndex}`,
-    agentId: agentId,
+    agentId: event.params.agentId,
     score: event.params.score,
     revenue: event.params.revenue,
-    timestamp: BigInt(event.block.timestamp),
-    blockNumber: BigInt(event.block.number),
   };
-  context.AgentScoring_ScoreRecorded.set(scoreEvent);
-  
-  // 2. Update or create aggregated Agent entity
-  let agent = await context.Agent.get(agentId);
-  
-  if (!agent) {
-    agent = {
-      id: agentId,
-      agentId: agentId,
-      totalScore: 0n,
-      sessionCount: 0,
-      averageScore: 0n,
-      totalRevenue: 0n,
-      lastUpdated: BigInt(event.block.timestamp),
-    };
-  }
-  
-  // 3. Aggregate the scores
-  agent.totalScore = agent.totalScore + event.params.score;
-  agent.sessionCount = agent.sessionCount + 1;
-  agent.averageScore = agent.totalScore / BigInt(agent.sessionCount);
-  agent.totalRevenue = agent.totalRevenue + event.params.revenue;
-  agent.lastUpdated = BigInt(event.block.timestamp);
-  
-  // 4. Save the updated agent
-  context.Agent.set(agent);
+  context.AgentScoring_ScoreRecorded.set(entity);
 });
